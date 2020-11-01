@@ -75,8 +75,8 @@
 \begin{frame}
 \frametitle{\textbf{Zadání}}
 	\begin{itemize}
-    		\item 4. Tvorba vlastního překladače
-    		\item Podmnožina jazyka C
+    		\item Zvolené 4. možné zadání - Tvorba vlastního překladače
+    		\item Překlad podmnožiny     jazyka C
     
   	\end{itemize}
 \end{frame}
@@ -86,18 +86,18 @@
 \frametitle{\textbf{Popis jazyka}}
 	\begin{itemize}
     		\item Silně staticky typovaný
-    		\item Datové typy - int, string, bool
+    		\item Datové typy - \texttt{int}, \texttt{string}, \texttt{bool}, \texttt{array}, \texttt{struct}
     		\item Binární operátory - \uv{+-*/}
     		\item Operátory pro porovnání - \uv{$<,  >,   ==,  <=,  >= ,  !=$}
     		\item Logické operátory - \uv{$||$, \&\&}
-    		\item Řídící struktury - for, while, if (else)
+    		\item Řídící struktury - \texttt{for}, \texttt{while}, \texttt{if} (\texttt{else})
   	\end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{\textbf{Další rozdíly oproti C}}
 	\begin{itemize}
-    		\item Nemožnost ++/- -
+    		\item Nemožnost použití operátorů ++/- -
     		\item Řídící proměnná musí být deklarovaná před cyklem
     		\item Nepřítomnost ukazatelů
   	\end{itemize}
@@ -113,13 +113,139 @@
   	\end{itemize}
 \end{frame}
 
-\begin{frame}
-\frametitle{\textbf{Gramatika}}
-	
+\begin{frame}[fragile]
+\frametitle{\textbf{Gramatika - úvod}}
+    \begin{itemize}
+        \item V tuto chvíli 18 neterminálních symbolů a 49 přepisovacích pravidel
+    \end{itemize}
+    \begin{figure}
+        \centering
+        \begin{verbatim}
+    program ->      promenna program |
+                    funkce program |
+                    e
+
+    promenna ->     deklarace ";"|
+                    deklarace "=" hodnota ";"|
+                    "const" deklarace "=" hodnota ";"|
+                    struktura ";"
+
+    deklarace ->    dat_typ identifikator |
+                    dat_typ identifikator "[" cislo "]"
+        \end{verbatim}
+    \end{figure}
 \end{frame}
-            
-  
-   
+
+\begin{frame}[fragile]
+\frametitle{\textbf{Gramatika - struktury}}
+    \begin{itemize}
+        \item Již počítá s podporou polí a definice struktur
+        \item Středník za každým výrazem či deklarací proměnné
+    \end{itemize}
+    \begin{figure}
+        \centering
+        \begin{verbatim} 
+    multi_deklarace ->  deklarace ";" | 
+                        deklarace ";" multi_deklarace
+    
+    struktura       ->  "struct" identifikator "{" 
+                            multi_deklarace 
+                        "}" 
+        \end{verbatim}
+    \end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{Gramatika - funkce}}
+    \begin{figure}
+        \centering
+        \begin{verbatim}
+    funkce ->   deklarace "(" parametry ")" blok
+
+    parametry -> deklarace |
+                 deklarace "," parametry |
+                 e
+    
+    blok ->     "{" prikazy "}" | prikaz
+    
+    prikazy ->  prikaz |
+                prikaz prikazy
+        \end{verbatim}
+    \end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{Gramatika - příkazy a výrazy}}
+    \begin{figure}
+        \centering
+        \begin{verbatim}
+    prikaz -> promenna |
+              podminka |
+              vyraz ";"|
+              cyklus |
+              "return" vyraz ";"
+              
+    vyraz ->  identifikator "=" hodnota |
+              identifikator "[" cislo "]" "=" hodnota |
+              volani_fce |
+              logicky_vyraz |
+              hodnota
+              
+    vyrazy -> vyraz |
+              vyraz "," vyrazy |
+              e
+        \end{verbatim}
+    \end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{Gramatika - řízení programu}}
+    \begin{figure}
+        \centering
+        \begin{verbatim}
+    podminka -> "if" "(" vyraz ")" blok |
+                "if" "(" vyraz ")" blok "else" blok
+    
+    cyklus ->   "while" "(" vyraz ")" blok |
+                "for" "(" vyraz ";" vyraz ";" vyraz ")" blok
+                
+    volani_fce -> identifikator "(" vyrazy ")"
+        \end{verbatim}
+    \end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{\textbf{Gramatika - hodnoty a logické výrazy}}
+    \begin{figure}
+        \centering
+        \fontsize{10pt}{12pt}\selectfont
+        \begin{verbatim}
+    hodnota ->       cislo |
+                     string |
+                     identifikator |
+                     matematika |
+                     volani_fce |
+                     identifikator "[" cislo "]"
+
+    matematika ->    hodnota bin_operator hodnota
+
+    logicky_vyraz -> hodnota |
+                     hodnota porovnani hodnota |
+                     "!" logicky_vyraz |
+                     "(" logicky_vyraz ")" |
+                     logicky_vyraz log_oper logicky_vyraz
+        \end{verbatim}
+    \end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{\textbf{Závěr}}
+	\begin{itemize}
+    		\item Gramatika se ještě změní s výběrem volitelných rozšíření jazyka
+    		\item Volba C/C++ pro tvorbu překladače ještě není finální
+  	\end{itemize}
+\end{frame}
+
 %*********************************************************************************************
 
 %**********************************************************************************************
@@ -138,3 +264,4 @@
 %\end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document}
+
