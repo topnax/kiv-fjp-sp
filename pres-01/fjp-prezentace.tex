@@ -1,0 +1,140 @@
+\documentclass[xcolor=dvipsnames]{beamer}
+%\usepackage[utf8]{inputenc}
+%\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes}
+\usepackage{caption}
+%\usepackage[utf8]{inputenc}
+\usepackage[czech]{babel}
+%\usepackage[utf8]{vietnam}
+\usepackage{pdfpages}
+\usepackage{color}
+\usepackage{booktabs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{lipsum}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{pgf}
+\usepackage{etex}
+\usepackage{tikz,pgfplots}
+
+\tikzstyle{every picture}+=[remember picture]
+% By default all math in TikZ nodes are set in inline mode. Change this to
+% displaystyle so that we don't get small fractions.
+\everymath{\displaystyle}
+
+
+\usetheme{Antibes}
+%\usetheme{Madrid}
+%\usecolortheme[named=Maroon]{structure}
+\usecolortheme{crane}
+\usefonttheme{professionalfonts}
+\useoutertheme{infolines}
+\useinnertheme{circles}
+
+\newtheorem*{bem}{Bemerkung}
+
+\usepackage{tikz}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{1,0.6,0}
+\definecolor{gray}{rgb}{1,1,0}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title[Západočeská univerzita v Plzni]{\includegraphics[width=\textwidth/4]{img/logo.png}}
+\author[Jindřiška Reismüllerová \& Stanislav Král]{ \textbf{FJP -- Návrh jazyka C - -}}
+\institute{}
+%\logo{\includegraphics[height=1.5cm]{img/KIV\_ram\_cerna.pdf}}
+
+\logo{\pgfimage[height=0.5cm]{img/kiv-logo.pdf}}
+
+\setbeamercolor{title}{parent=structure}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+\frametitle{\textbf{Zadání}}
+	\begin{itemize}
+    		\item 4. Tvorba vlastního překladače
+    		\item Podmnožina jazyka C
+    
+  	\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{\textbf{Popis jazyka}}
+	\begin{itemize}
+    		\item Silně staticky typovaný
+    		\item Datové typy - int, string, bool
+    		\item Binární operátory - \uv{+-*/}
+    		\item Operátory pro porovnání - \uv{$<,  >,   ==,  <=,  >= ,  !=$}
+    		\item Logické operátory - \uv{$||$, \&\&}
+    		\item Řídící struktury - for, while, if (else)
+  	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{\textbf{Další rozdíly oproti C}}
+	\begin{itemize}
+    		\item Nemožnost ++/- -
+    		\item Řídící proměnná musí být deklarovaná před cyklem
+    		\item Nepřítomnost ukazatelů
+  	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{\textbf{Technologie}}
+	\begin{itemize}
+    		\item Jazyk C/C++
+    		\item Flex - lexikální analýza
+    		\item Bison - syntaktická analýza
+    		\item Cílová platforma -  PL/0
+  	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{\textbf{Gramatika}}
+	
+\end{frame}
+            
+  
+   
+%*********************************************************************************************
+
+%**********************************************************************************************
+%\begin{frame}\frametitle{}
+%  \centering
+%    \includemedia[
+%  width=0.6\linewidth,height=0.45\linewidth,
+%  activate=pageopen,
+%  flashvars={
+%    modestbranding=1 % no YT logo in control bar
+%   &autohide=1       % controlbar autohide
+%   &showinfo=0       % no title and other info before start
+%  }
+%]{}{http://www.youtube.com/v/dISaXUlilkU?rel=0}   % Flash file 
+      
+%\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}

@@ -1,0 +1,85 @@
+T = {dat_typ (int, string, char, bool), 
+     identifikator ([a-z][a-z0-9]*),
+     cislo(int),
+     string ("ASCII*"),
+     bin_operator(+-*/),
+     porovnani(> < == >= <= !=) ,
+     log_oper (|| &&)}         
+     
+     .... nebude ++ , deklarace ridici promenne pred cyklem
+
+
+program -> promenna program | 
+           funkce program |
+           e
+           
+promenna -> deklarace ";"|
+            deklarace "=" hodnota ";"|
+            "const" deklarace "=" hodnota ";"|
+            struktura ";"
+            
+deklarace -> dat_typ identifikator |
+             dat_typ identifikator "[" cislo "]"  
+
+struktura -> "struct" identifikator "{" multi_deklarace "}"
+
+multi_deklarace ->  deklarace ";"| 
+                    deklarace ";" multi_deklarace
+                       
+funkce -> deklarace "(" parametry ")" blok
+
+parametry -> deklarace |
+             deklarace "," parametry |
+             e
+             
+blok -> "{" prikazy "}" | prikaz
+
+prikazy -> prikaz |
+           prikaz prikazy
+           
+prikaz -> promenna |
+          podminka |
+          vyraz ";"|
+          cyklus |
+          "return" vyraz ";"
+          
+podminka -> "if" "(" vyraz ")" blok |
+            "if" "(" vyraz ")" blok "else" blok
+            
+cyklus -> "while" "(" vyraz ")" blok |
+          "for" "(" vyraz ";" vyraz ";" vyraz ")" blok
+          
+vyraz ->  identifikator "=" hodnota |
+          identifikator "[" cislo "]" "=" hodnota |
+          volani_fce |
+          logicky_vyraz |
+          hodnota
+          
+hodnota -> cislo |
+           string |
+           identifikator |
+           matematika |
+           volani_fce |
+           identifikator "[" cislo "]"
+           
+matematika -> hodnota bin_operator hodnota
+
+volani_fce -> identifikator "(" vyrazy ")"
+
+vyrazy -> vyraz | 
+          vyraz "," vyrazy |
+          e
+          
+logicky_vyraz -> hodnota |
+                 hodnota porovnani hodnota |
+                 "!" logicky_vyraz |
+                 "(" logicky_vyraz ")" |
+                 logicky_vyraz log_oper logicky_vyraz
+
+                
+
+
+
+
+
+
