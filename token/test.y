@@ -7,14 +7,16 @@ int yyerror(char *s);
 
 %}
 
-%token STRING NUM OTHER SEMICOLON IDENTIFIER
+%token STRING NUM OTHER SEMICOLON IDENTIFIER TYPE
 
 %type <name> STRING
 %type <number> NUM
 %type <identifier> IDENTIFIER
+%type <type> TYPE
 
 %union{
     char name[20];
+    int type;
     int number;
     char identifier[30];
 }
@@ -29,7 +31,10 @@ stmts:
 		| stmt SEMICOLON stmts
 
 stmt:
-		STRING {
+        | TYPE {
+				printf("Your entered a type: - %d", $1);
+		}
+        | STRING {
 				printf("Your entered a string - %s", $1);
 		}
 		| NUM {
