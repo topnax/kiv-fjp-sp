@@ -7,9 +7,9 @@ int yyerror(char *s);
 
 %}
 
-%token STRING NUM OTHER SEMICOLON IDENTIFIER TYPE WHITESPACE L_OP B_OP A_OP COMPARSION
+%token STR_LITERAL NUM OTHER SEMICOLON IDENTIFIER TYPE WHITESPACE L_OP B_OP A_OP COMPARSION
 
-%type <name> STRING
+%type <str_literal> STR_LITERAL
 %type <number> NUM
 %type <identifier> IDENTIFIER
 %type <type> TYPE
@@ -19,7 +19,7 @@ int yyerror(char *s);
 %type <comparsion> COMPARSION;
 
 %union{
-    char name[20];
+    char str_literal[200];
     int type;
     int number;
     char identifier[30];
@@ -46,8 +46,8 @@ stmt:
         | TYPE {
 				printf("Your entered a type: - %d\n", $1);
 		}
-        | STRING {
-				printf("Your entered a string - %s\n", $1);
+        | STR_LITERAL {
+				printf("Your entered a string literal - %s\n", $1);
 		}
 		| NUM {
 				printf("The number you entered is - %d\n", $1);
