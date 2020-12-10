@@ -10,15 +10,19 @@ void showError();
 
 type  (int|string|char|bool)
 identifier  ([a-z][a-zA-Z0-9]*)
-numbers     ([0-9])+
+number     ([0-9])+
 alpha       ([a-zA-Z])+
+l_op       (\|\||\&\&)+
+b_op       (\||\&)+
 
 %%
 
 {type}		        {yylval.type = convert_to_type_enum(yytext); return (TYPE);}
 {identifier}		{sscanf(yytext, "%s", yylval.identifier); return (IDENTIFIER);}
 {alpha}             {sscanf(yytext, "%s", yylval.name); return (STRING);}
-{numbers}           {yylval.number = atoi(yytext); return (NUM);}
+{number}            {yylval.number = atoi(yytext); return (NUM);}
+{l_op}              {sscanf(yytext, "%s", yylval.l_op); return (L_OP);}
+{b_op}              {sscanf(yytext, "%s", yylval.b_op); return (B_OP);}
 ";"      		    {return (SEMICOLON);}
 " "      		    ;
 .      		        {showError(); return(OTHER);}
