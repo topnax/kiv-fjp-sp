@@ -14,6 +14,7 @@ number     ([0-9])+
 alpha       ([a-zA-Z])+
 l_op       (\|\||\&\&)+
 b_op       (\||\&)+
+a_op       (\+|\*|\/|\-)+
 
 %%
 
@@ -23,6 +24,7 @@ b_op       (\||\&)+
 {number}            {yylval.number = atoi(yytext); return (NUM);}
 {l_op}              {sscanf(yytext, "%s", yylval.l_op); return (L_OP);}
 {b_op}              {sscanf(yytext, "%s", yylval.b_op); return (B_OP);}
+{a_op}              {sscanf(yytext, "%s", yylval.a_op); return (A_OP);}
 ";"      		    {return (SEMICOLON);}
 " "      		    ;
 .      		        {showError(); return(OTHER);}

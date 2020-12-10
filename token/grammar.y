@@ -7,13 +7,14 @@ int yyerror(char *s);
 
 %}
 
-%token STRING NUM OTHER SEMICOLON IDENTIFIER TYPE WHITESPACE L_OP B_OP
+%token STRING NUM OTHER SEMICOLON IDENTIFIER TYPE WHITESPACE L_OP B_OP A_OP
 
 %type <name> STRING
 %type <number> NUM
 %type <identifier> IDENTIFIER
 %type <type> TYPE
 %type <l_op> L_OP
+%type <a_op> A_OP
 %type <b_op> B_OP
 
 %union{
@@ -22,6 +23,7 @@ int yyerror(char *s);
     int number;
     char identifier[30];
     char l_op[5];
+    char a_op[5];
     char b_op[5];
 }
 
@@ -53,6 +55,9 @@ stmt:
 		}
 		| L_OP {
 				printf("The logic operator you entered is - %s\n", $1);
+		}
+		| A_OP {
+				printf("The arithmetic operator entered is - %s\n", $1);
 		}
 		| B_OP {
 				printf("The binary operator entered is - %s\n", $1);
