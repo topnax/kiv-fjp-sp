@@ -8,7 +8,11 @@ int yyerror(char *s);
 %}
 
 %token STR_LITERAL NUM OTHER SEMICOLON IDENTIFIER TYPE WHITESPACE L_OP B_OP A_OP COMPARSION
+%token ASSIGN
 %token B_L_CURLY B_R_CURLY B_L_SQUARE B_R_SQUARE PAREN_L PAREN_R
+
+// reserved keywords
+%token STRUCT WHILE FOR IF ELSE CONST RETURN COMMA TRUE FALSE
 
 
 %type <str_literal> STR_LITERAL
@@ -57,6 +61,9 @@ stmts:
 ;
 
 stmt:
+        | reserved {
+            printf("A reserved keyword encountered\n");
+        }
         | TYPE IDENTIFIER {
             printf("variable declaration: type=%d identifier=%s\n", $1, $2);
         } 
@@ -71,6 +78,9 @@ stmt:
 		}
 		| IDENTIFIER {
 				printf("The identifier you entered is - %s\n", $1);
+		}
+    	| ASSIGN {
+				printf("Encountered assign operator\n");
 		}
 		| L_OP {
 				printf("The logic operator you entered is - %s\n", $1);
@@ -90,12 +100,27 @@ stmt:
 		| paren {
 				printf("The parenthesis encountered %c\n", $1);
 		}
+        | COMMA {
+            printf("A comma encountered\n");
+        }
 		| OTHER
 ;
 
 paren :
         PAREN_R
         | PAREN_L
+;
+
+reserved :
+        STRUCT
+        | WHILE
+        | FOR
+        | IF
+        | ELSE
+        | CONST
+        | RETURN
+        | TRUE
+        | FALSE
 ;
 
 bracket :
