@@ -8,6 +8,8 @@ int yyerror(char *s);
 %}
 
 %token STR_LITERAL NUM OTHER SEMICOLON IDENTIFIER TYPE WHITESPACE L_OP B_OP A_OP COMPARSION
+%token B_L_CURLY B_R_CURLY B_L_SQUARE B_R_SQUARE PAREN_L PAREN_R
+
 
 %type <str_literal> STR_LITERAL
 %type <number> NUM
@@ -18,6 +20,19 @@ int yyerror(char *s);
 %type <b_op> B_OP
 %type <comparsion> COMPARSION;
 
+%type <bracket> B_L_CURLY;
+%type <bracket> B_R_CURLY;
+%type <bracket> B_L_SQUARE;
+%type <bracket> B_R_SQUARE;
+
+%type <parenthesis> PAREN_L;
+%type <parenthesis> PAREN_R;
+
+
+%type <parenthesis> paren;
+%type <bracket> bracket;
+
+
 %union{
     char str_literal[200];
     int type;
@@ -27,6 +42,8 @@ int yyerror(char *s);
     char a_op[5];
     char b_op[5];
     char comparsion[5];
+    char parenthesis;
+    char bracket;
 }
 
 %%
@@ -67,7 +84,25 @@ stmt:
 		| COMPARSION {
 				printf("The comparsion you entered is - %s\n", $1);
 		}
+        | bracket {
+				printf("The bracket you entered is - %c\n", $1);
+        }
+		| paren {
+				printf("The parenthesis encountered %c\n", $1);
+		}
 		| OTHER
+;
+
+paren :
+        PAREN_R
+        | PAREN_L
+;
+
+bracket :
+    B_L_SQUARE
+    | B_R_SQUARE
+    | B_L_CURLY
+    | B_R_CURLY
 ;
 
 %%

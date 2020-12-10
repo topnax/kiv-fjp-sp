@@ -16,7 +16,6 @@ l_op        (\|\||\&\&)
 b_op        (\||\&|\~)
 a_op        (\+|\*|\/|\-)
 comparsion  (>|<|==|>=|<=|!=)
-brackets  ()
 
 %%
 
@@ -28,6 +27,12 @@ brackets  ()
 {b_op}              {sscanf(yytext, "%s", yylval.b_op); return (B_OP);}
 {a_op}              {sscanf(yytext, "%s", yylval.a_op); return (A_OP);}
 {comparsion}         {sscanf(yytext, "%s", yylval.comparsion); return (COMPARSION);}
+"{"      		    {yylval.bracket = yytext[0]; return (B_L_CURLY);}
+"}"      		    {yylval.bracket = yytext[0]; return (B_R_CURLY);}
+"["      		    {yylval.bracket = yytext[0]; return (B_L_SQUARE);}
+"]"      		    {yylval.bracket = yytext[0]; return (B_R_SQUARE);}
+"("      		    {yylval.parenthesis = yytext[0]; return (PAREN_L);}
+")"      		    {yylval.parenthesis = yytext[0]; return (PAREN_R);}
 ";"      		    {return (SEMICOLON);}
 " "      		    ;
 .      		        {showError(); return(OTHER);}
