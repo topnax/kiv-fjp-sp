@@ -33,7 +33,15 @@ false               {return FALSE;}
 
 {type}		        {yylval.type = convert_to_type_enum(yytext); return TYPE;}
 {identifier}		{sscanf(yytext, "%s", yylval.identifier); return IDENTIFIER;}
-{str_literal}       {sscanf(yytext, "%s", yylval.str_literal); return STR_LITERAL;}
+{str_literal}       {
+                        int length = yyleng;
+                        if (length > sizeof(yylval.str_literal)) {
+                            length = sizeof(yylval.str_literal) - 1;
+                        }
+                        memcpy(yylval.str_literal, yytext, length);
+                        yylval.str_literal[length] = 0;
+                        return STR_LITERAL;
+                    }
 {int_literal}            {yylval.int_literal = atoi(yytext); return INT_LITERAL;}
 {l_op}              {sscanf(yytext, "%s", yylval.l_op); return L_OP;}
 {b_op}              {sscanf(yytext, "%s", yylval.b_op); return B_OP;}
