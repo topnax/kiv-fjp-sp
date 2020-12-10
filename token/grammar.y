@@ -7,7 +7,7 @@ int yyerror(char *s);
 
 %}
 
-%token STRING NUM OTHER SEMICOLON IDENTIFIER TYPE WHITESPACE L_OP B_OP A_OP
+%token STRING NUM OTHER SEMICOLON IDENTIFIER TYPE WHITESPACE L_OP B_OP A_OP COMPARSION
 
 %type <name> STRING
 %type <number> NUM
@@ -16,6 +16,7 @@ int yyerror(char *s);
 %type <l_op> L_OP
 %type <a_op> A_OP
 %type <b_op> B_OP
+%type <comparsion> COMPARSION;
 
 %union{
     char name[20];
@@ -25,6 +26,7 @@ int yyerror(char *s);
     char l_op[5];
     char a_op[5];
     char b_op[5];
+    char comparsion[5];
 }
 
 %%
@@ -57,10 +59,13 @@ stmt:
 				printf("The logic operator you entered is - %s\n", $1);
 		}
 		| A_OP {
-				printf("The arithmetic operator entered is - %s\n", $1);
+				printf("The arithmetic operator you entered is - %s\n", $1);
 		}
 		| B_OP {
-				printf("The binary operator entered is - %s\n", $1);
+				printf("The binary operator you entered is - %s\n", $1);
+		}
+		| COMPARSION {
+				printf("The comparsion you entered is - %s\n", $1);
 		}
 		| OTHER
 ;

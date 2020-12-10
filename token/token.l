@@ -8,13 +8,14 @@
 void showError();
 %}
 
-type  (int|string|char|bool)
+type        (int|string|char|bool)
 identifier  ([a-z][a-zA-Z0-9]*)
-number     ([0-9])+
+number      ([0-9])+
 alpha       ([a-zA-Z])+
-l_op       (\|\||\&\&)+
-b_op       (\||\&)+
-a_op       (\+|\*|\/|\-)+
+l_op        (\|\||\&\&)+
+b_op        (\||\&)+
+a_op        (\+|\*|\/|\-)+
+comparsion  (>|<|==|>=|<=|!=)+
 
 %%
 
@@ -25,6 +26,7 @@ a_op       (\+|\*|\/|\-)+
 {l_op}              {sscanf(yytext, "%s", yylval.l_op); return (L_OP);}
 {b_op}              {sscanf(yytext, "%s", yylval.b_op); return (B_OP);}
 {a_op}              {sscanf(yytext, "%s", yylval.a_op); return (A_OP);}
+{comparsion}         {sscanf(yytext, "%s", yylval.comparsion); return (COMPARSION);}
 ";"      		    {return (SEMICOLON);}
 " "      		    ;
 .      		        {showError(); return(OTHER);}
