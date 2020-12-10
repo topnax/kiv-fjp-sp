@@ -1,11 +1,6 @@
-lex.yy.c
-test.output
-test.tab.c
-test.tab.h
-
 Makefile
 
-compiled/
+generated/
 
 *.swp
 

@@ -2,13 +2,16 @@ cmake_minimum_required(VERSION 3.16)
 
 project(CMM)
 
+file(MAKE_DIRECTORY generated)
+
 find_package(FLEX)
 find_package(BISON)
-flex_target(cmmflex token.l ${CMAKE_CURRENT_BINARY_DIR}/token.c)
+
+flex_target(cmmflex token.l ${CMAKE_CURRENT_BINARY_DIR}/generated/token.c)
 
 bison_target(cmmbison
-    grammar.y ${CMAKE_BINARY_DIR}/grammar.y.c 
-    DEFINES_FILE ${CMAKE_BINARY_DIR}/grammar.tab.h
+    grammar.y ${CMAKE_BINARY_DIR}/generated/grammar.y.c
+    DEFINES_FILE ${CMAKE_BINARY_DIR}/generated/grammar.tab.h
 )
 
 add_executable(CMM
