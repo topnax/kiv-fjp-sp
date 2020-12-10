@@ -28,6 +28,7 @@ return              {return RETURN;}
 true                {return TRUE;}
 false               {return FALSE;}
 ","                 {return COMMA;}
+"."                 {return DOT;}
 "="                 {return ASSIGN;}
 
 {type}		        {yylval.type = convert_to_type_enum(yytext); return TYPE;}

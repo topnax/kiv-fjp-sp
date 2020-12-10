@@ -12,7 +12,7 @@ int yyerror(char *s);
 %token B_L_CURLY B_R_CURLY B_L_SQUARE B_R_SQUARE PAREN_L PAREN_R
 
 // reserved keywords
-%token STRUCT WHILE FOR IF ELSE CONST RETURN COMMA TRUE FALSE
+%token STRUCT WHILE FOR IF ELSE CONST RETURN COMMA DOT TRUE FALSE
 
 
 %type <str_literal> STR_LITERAL
@@ -102,6 +102,9 @@ stmt:
 		}
         | COMMA {
             printf("A comma encountered\n");
+        }
+        | DOT {
+            printf("A dot encountered\n");
         }
 		| OTHER
 ;
