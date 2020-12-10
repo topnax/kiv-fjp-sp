@@ -7,7 +7,7 @@ int yyerror(char *s);
 
 %}
 
-%token STRING NUM OTHER SEMICOLON IDENTIFIER TYPE
+%token STRING NUM OTHER SEMICOLON IDENTIFIER TYPE WHITESPACE
 
 %type <name> STRING
 %type <number> NUM
@@ -29,19 +29,23 @@ prog:
 
 stmts:
 		| stmt SEMICOLON stmts
+;
 
 stmt:
+        | TYPE IDENTIFIER {
+            printf("variable declaration: type=%d identifier=%s\n", $1, $2);
+        } 
         | TYPE {
-				printf("Your entered a type: - %d", $1);
+				printf("Your entered a type: - %d\n", $1);
 		}
         | STRING {
-				printf("Your entered a string - %s", $1);
+				printf("Your entered a string - %s\n", $1);
 		}
 		| NUM {
-				printf("The number you entered is - %d", $1);
+				printf("The number you entered is - %d\n", $1);
 		}
 		| IDENTIFIER {
-				printf("The identifier you entered is - %s", $1);
+				printf("The identifier you entered is - %s\n", $1);
 		}
 		| OTHER
 ;
@@ -54,8 +58,3 @@ int yyerror(char *s)
 	return 0;
 }
 
-int main()
-{
-    yyparse();
-    return 0;
-}

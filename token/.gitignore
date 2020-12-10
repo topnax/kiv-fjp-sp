@@ -3,6 +3,8 @@ test.output
 test.tab.c
 test.tab.h
 
+Makefile
+
 compiled/
 
 *.swp
