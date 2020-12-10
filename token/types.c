@@ -1,4 +1,5 @@
 #include "types.h"
+#include <string.h>
 
 int convert_to_type_enum(char *in) {
     if (strcmp(in, "int") == 0) {
