@@ -14,6 +14,8 @@ int yyerror(char *s);
 // reserved keywords
 %token STRUCT WHILE FOR IF ELSE CONST RETURN COMMA DOT TRUE FALSE
 
+%token END 0 "end of file"
+
 
 %type <str_literal> STR_LITERAL
 %type <int_literal> INT_LITERAL
@@ -53,7 +55,8 @@ int yyerror(char *s);
 %%
 
 prog:
-  stmts
+    | variable prog
+    | END
 ;
 
 stmts:
@@ -64,9 +67,7 @@ stmt:
         | reserved {
             printf("A reserved keyword encountered\n");
         }
-        | TYPE IDENTIFIER {
-            printf("variable declaration: type=%d identifier=%s\n", $1, $2);
-        } 
+
         | TYPE {
 				printf("Your entered a type: - %d\n", $1);
 		}
@@ -107,6 +108,27 @@ stmt:
             printf("A dot encountered\n");
         }
 		| OTHER
+;
+
+declaration:
+        | TYPE IDENTIFIER {
+            printf("variable declaration: type=%d identifier=%s\n", $1, $2);
+        }
+;
+
+value:
+    | INT_LITERAL
+    | STR_LITERAL
+    | IDENTIFIER
+;
+
+variable:
+    | declaration SEMICOLON {
+        printf("got variable declaration\n");
+    } 
+    | declaration ASSIGN value SEMICOLON {
+        printf("got variable delcaration with value assignment\n");
+    }
 ;
 
 paren :

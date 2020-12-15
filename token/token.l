@@ -4,7 +4,7 @@
 #include <string.h>
 #include "grammar.tab.h"
 #include "types.h"
-
+#define yyterminate() return END
 void showError();
 %}
 
