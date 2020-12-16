@@ -72,21 +72,6 @@ declaration:
     }
 ;
 
-value:
-    | INT_LITERAL {
-        printf("got int literal as value\n");
-    }
-    | STR_LITERAL {
-        printf("got str literal as value\n");
-    }
-    | IDENTIFIER {
-        printf("got scalar identifier as value\n");
-    }
-    | IDENTIFIER B_L_SQUARE value B_R_SQUARE {
-        printf("got array identifier as value\n");
-    }
-;
-
 multi_declaration:
     | declaration SEMICOLON {
         printf("struct terminal declaration\n");
@@ -112,7 +97,7 @@ variable:
 ;
 
 condition:
-    | IF PAREN_L expression PAREN_R block {
+    IF PAREN_L expression PAREN_R block {
         printf("got if condition (without else)\n");
     }
     | IF PAREN_L expression PAREN_R block ELSE block {
@@ -121,7 +106,7 @@ condition:
 ;
 
 loop:
-    | WHILE PAREN_L expression PAREN_R block {
+    WHILE PAREN_L expression PAREN_R block {
         printf("got while loop\n");
     }
     | FOR PAREN_L expression SEMICOLON expression SEMICOLON expression PAREN_R block {
@@ -130,13 +115,13 @@ loop:
 ;
 
 arithmetic:
-    | value A_OP value {
+    value A_OP value {
         printf("operator %s\n", $2);
     }
 ;
 
 expressions:
-    | expression {
+    expression {
         printf("expression as a function call parameter\n");
     }
     | expressions COMMA expression {
@@ -145,7 +130,7 @@ expressions:
 ;
 
 function_call:
-    | IDENTIFIER PAREN_L PAREN_R {
+    IDENTIFIER PAREN_L PAREN_R {
         printf("non-parametric function call\n");
     }
     | IDENTIFIER PAREN_L expressions PAREN_R {
@@ -154,14 +139,14 @@ function_call:
 ;
 
 value:
-    | INT_LITERAL {
+    INT_LITERAL {
         printf("got int literal as value\n");
     }
     | STR_LITERAL {
         printf("got str literal as value\n");
     }
     | IDENTIFIER {
-        printf("got identifier as value\n");
+        printf("got scalar identifier as value\n");
     }
     | arithmetic {
         printf("got arithmetic as value\n");
@@ -172,11 +157,14 @@ value:
     | IDENTIFIER DOT IDENTIFIER {
         printf("got struct %s member %s as value\n", $1, $3);
     }
+    | IDENTIFIER B_L_SQUARE value B_R_SQUARE {
+        printf("got array identifier as value\n");
+    }
     // todo: array
 ;
 
 expression:
-    | IDENTIFIER ASSIGN value {
+    IDENTIFIER ASSIGN value {
         printf("assigning value to %s\n", $1);
     }
     | IDENTIFIER B_L_SQUARE value B_R_SQUARE ASSIGN value {
@@ -188,16 +176,13 @@ expression:
     | value {
         printf("got value (expression)\n");
     }
-    | function_call {
-        printf("got function call (expression)\n");
-    }
     | boolean_expression {
         printf("got boolean expression\n");
     }
 ;
 
 command:
-    | variable {
+    variable {
         printf("got var decl command\n");
     }
     | expression SEMICOLON {
@@ -215,16 +200,18 @@ command:
 ;
 
 commands:
-    | command {
+    command {
         printf("got a terminal command definition\n");
     }
     | commands command {
         printf("got a non-terminal command definition\n");
     }
-    | END
 ;
 
 block:
+    B_L_CURLY B_R_CURLY {
+        printf("got an empty block\n");
+    }
     | B_L_CURLY commands B_R_CURLY {
         printf("got a multi-line block\n");
     }
@@ -235,26 +222,31 @@ block:
 ;
 
 parameters:
-    | declaration {
+    declaration {
         printf("got a terminal function parameter definition\n");
     }
     | parameters COMMA declaration {
         printf("got a non-terminal function parameter definition\n");
     }
-    | END
 ;
 
 function:
-    | declaration PAREN_L PAREN_R block {
+    declaration PAREN_L PAREN_R block {
         printf("got a function definition (no params)\n");
     }
     | declaration PAREN_L parameters PAREN_R block {
         printf("got a function definition (with params)\n");
     }
+    | declaration PAREN_L PAREN_R SEMICOLON {
+        printf("got a function forward declaration (no params)\n");
+    }
+    | declaration PAREN_L parameters PAREN_R SEMICOLON {
+        printf("got a function forward declaration (with params)\n");
+    }
 ;
 
 boolean_expression:
-    | value {
+    value {
         printf("got value (boolean expression)\n");
     }
     | value COMPARSION value {
@@ -269,18 +261,12 @@ boolean_expression:
     | boolean_expression L_OP boolean_expression {
         printf("got boolean expression (boolean expression)\n");
     }
-;
-
-reserved:
-        STRUCT
-        | WHILE
-        | FOR
-        | IF
-        | ELSE
-        | CONST
-        | RETURN
-        | TRUE
-        | FALSE
+    | TRUE {
+        printf("got true (boolean expression)\n");
+    }
+    | FALSE {
+        printf("got false (boolean expression)\n");
+    }
 ;
 
 %%
