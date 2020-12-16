@@ -1,3 +1,4 @@
+%option noyywrap
 %{
 
 #include <stdio.h>
@@ -5,7 +6,7 @@
 #include "grammar.tab.h"
 #include "types.h"
 #define yyterminate() return END
-void showError();
+void showError(const char* token);
 %}
 
 type        (int|string|char|bool)
@@ -30,6 +31,7 @@ false               {return FALSE;}
 ","                 {return COMMA;}
 "."                 {return DOT;}
 "="                 {return ASSIGN;}
+"!"                 {return NOT;}
 
 {type}		        {yylval.type = convert_to_type_enum(yytext); return TYPE;}
 {identifier}		{sscanf(yytext, "%s", yylval.identifier); return IDENTIFIER;}
@@ -57,11 +59,14 @@ false               {return FALSE;}
 ")"      		    {yylval.parenthesis = yytext[0]; return PAREN_R;}
 ";"      		    {return SEMICOLON;}
 " "      		    ;
-.      		        {showError(); return OTHER;}
+"\t"                ;
+"\r"                ;
+"\n"                ;
+.      		        {showError(yytext); return OTHER;}
 
 %%
 
 
-void showError(){
-    printf("Other input");
+void showError(const char* token){
+    printf("Other input: %s\n", token);
 }

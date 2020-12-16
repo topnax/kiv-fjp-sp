@@ -1,0 +1,9 @@
+int main() {
+    int pole[10];
+
+    pole[0] = 10;
+    pole[2] = 15;
+    pole[3] = pole[0] + pole[2];
+
+    return 0;
+}

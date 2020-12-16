@@ -1,0 +1,3 @@
+int main(int a) {
+    int neco = 5;
+}
