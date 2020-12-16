@@ -55,13 +55,14 @@ extern FILE *yyin, *yyout;
 %%
 
 prog:
-    | prog function
+    prog function
     | prog variable
-    | END
+    | function
+    | variable
 ;
 
 declaration:
-    | TYPE IDENTIFIER {
+    TYPE IDENTIFIER {
         printf("variable declaration: type=%d identifier=%s\n", $1, $2);
     }
     | TYPE IDENTIFIER B_L_SQUARE INT_LITERAL B_R_SQUARE {
@@ -73,7 +74,7 @@ declaration:
 ;
 
 multi_declaration:
-    | declaration SEMICOLON {
+    declaration SEMICOLON {
         printf("struct terminal declaration\n");
     }
     | multi_declaration declaration SEMICOLON {
@@ -82,7 +83,7 @@ multi_declaration:
 ;
 
 variable:
-    | declaration SEMICOLON {
+    declaration SEMICOLON {
         printf("got variable declaration\n");
     } 
     | declaration ASSIGN value SEMICOLON {
@@ -218,7 +219,6 @@ block:
     | command {
         printf("got a single-line block\n");
     }
-    | END
 ;
 
 parameters:
