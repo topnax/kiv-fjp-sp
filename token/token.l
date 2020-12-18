@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "ast.h"
 #include "grammar.tab.h"
 #include "types.h"
 #define yyterminate() return END

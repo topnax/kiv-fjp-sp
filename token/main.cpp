@@ -1,7 +1,9 @@
 #include <iostream>
 #include <stdio.h>
+#include "ast.h"
 
-extern "C" int parse(FILE* input, FILE* output);
+extern int parse(FILE* input, FILE* output);
+extern program* ast_root;
 
 int main(int argc, char* argv[])
 {

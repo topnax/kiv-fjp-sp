@@ -1,13 +1,36 @@
 
 %{
-#include <stdio.h>
+#include <cstdio>
+#include "ast.h"
 
 int yylex();
 int yyerror(const char *s);
 
+program* ast_root = NULL;
+
 extern FILE *yyin, *yyout;
 
 %}
+
+%union{
+    char str_literal[200];
+    int type;
+    int int_literal;
+    char identifier[30];
+    char l_op[5];
+    char a_op[5];
+    char b_op[5];
+    char comparsion[5];
+    char parenthesis;
+    char bracket;
+
+    program* prog;
+    std::list<global_statement*>* global_statement;
+    function_declaration* function_declaration;
+    variable_declaration* variable_declaration;
+    declaration* declaration;
+    value* value;
+}
 
 %define parse.error verbose
 
@@ -20,7 +43,12 @@ extern FILE *yyin, *yyout;
 
 %token END 0 "end of file"
 
-
+%type <prog> prog
+%type <global_statement> global
+%type <function_declaration> function
+%type <variable_declaration> variable
+%type <declaration> declaration
+%type <value> value
 %type <str_literal> STR_LITERAL
 %type <int_literal> INT_LITERAL
 %type <identifier> IDENTIFIER
@@ -38,38 +66,42 @@ extern FILE *yyin, *yyout;
 %type <parenthesis> PAREN_L;
 %type <parenthesis> PAREN_R;
 
-
-%union{
-    char str_literal[200];
-    int type;
-    int int_literal;
-    char identifier[30];
-    char l_op[5];
-    char a_op[5];
-    char b_op[5];
-    char comparsion[5];
-    char parenthesis;
-    char bracket;
-}
+%start prog
 
 %%
 
 prog:
-    prog function
-    | prog variable
-    | function
-    | variable
+    global {
+        $$ = new program($1); ast_root = $$;
+    }
+;
+
+global:
+    global function {
+        $$ = $1;
+        $1->push_back($2);
+    }
+    | global variable {
+        $$ = $1;
+        $1->push_back($2);
+    }
+    | {
+        $$ = new std::list<global_statement*>();
+    }
 ;
 
 declaration:
     TYPE IDENTIFIER {
         printf("variable declaration: type=%d identifier=%s\n", $1, $2);
+        $$ = new declaration($1, $2);
     }
     | TYPE IDENTIFIER B_L_SQUARE INT_LITERAL B_R_SQUARE {
         printf("variable array declaration: type=%d identifier=%s size=%d\n", $1, $2, $4);
+        $$ = new declaration($1, $2, $4);
     }
     | STRUCT IDENTIFIER IDENTIFIER {
         printf("variable structure %s: identifier=%s\n", $2, $3);
+        $$ = new declaration(1, $3); // TODO: FIX THISSSS
     }
 ;
 
@@ -85,15 +117,19 @@ multi_declaration:
 variable:
     declaration SEMICOLON {
         printf("got variable declaration\n");
+        $$ = new variable_declaration($1);
     } 
     | declaration ASSIGN value SEMICOLON {
         printf("got variable delcaration with value assignment\n");
+        $$ = new variable_declaration($1, false, $3);
     }
     | CONST declaration ASSIGN value SEMICOLON {
         printf("got constant delcaration with value assignment\n");
+        $$ = new variable_declaration($2, true, $4);
     }
     | STRUCT IDENTIFIER B_L_CURLY multi_declaration B_R_CURLY SEMICOLON {
         printf("got structure definition\n");
+        $$ = new variable_declaration(NULL); // TODO: FIX THISSSS
     }
 ;
 
@@ -142,12 +178,15 @@ function_call:
 value:
     INT_LITERAL {
         printf("got int literal as value\n");
+        $$ = new value($1);
     }
     | STR_LITERAL {
         printf("got str literal as value\n");
+        $$ = new value($1);
     }
     | IDENTIFIER {
         printf("got scalar identifier as value\n");
+        $$ = new value($1);
     }
     | arithmetic {
         printf("got arithmetic as value\n");
