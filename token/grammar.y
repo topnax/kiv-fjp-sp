@@ -28,8 +28,16 @@ extern FILE *yyin, *yyout;
     std::list<global_statement*>* global_statement;
     function_declaration* function_declaration;
     variable_declaration* variable_declaration;
-    declaration* declaration;
-    value* value;
+    declaration* my_declaration;
+    value* my_value;
+    arithmetic* arithmetic;
+    function_call* function_call;
+    std::list<value*>* expressions;
+    expression* expression;
+    command* my_command;
+    std::list<command*>* commands;
+    block* block;
+    std::list<declaration*>* parameters;
 }
 
 %define parse.error verbose
@@ -47,8 +55,16 @@ extern FILE *yyin, *yyout;
 %type <global_statement> global
 %type <function_declaration> function
 %type <variable_declaration> variable
-%type <declaration> declaration
-%type <value> value
+%type <my_declaration> declaration
+%type <my_value> value
+%type <arithmetic> arithmetic
+%type <function_call> function_call
+%type <expressions> expressions
+%type <expression> expression
+%type <my_command> command
+%type <commands> commands
+%type <block> block
+%type <parameters> parameters
 %type <str_literal> STR_LITERAL
 %type <int_literal> INT_LITERAL
 %type <identifier> IDENTIFIER
@@ -154,24 +170,29 @@ loop:
 arithmetic:
     value A_OP value {
         printf("operator %s\n", $2);
+        $$ = new arithmetic($1, $2, $3);
     }
 ;
 
 expressions:
-    expression {
-        printf("expression as a function call parameter\n");
-    }
-    | expressions COMMA expression {
+    expressions COMMA value {
         printf("expression list as a function call parameter\n");
+        $$ = $1;
+        $1->push_back($3);
+    }
+    | {
+        $$ = new std::list<value*>();
     }
 ;
 
 function_call:
     IDENTIFIER PAREN_L PAREN_R {
         printf("non-parametric function call\n");
+        $$ = new function_call($1);
     }
     | IDENTIFIER PAREN_L expressions PAREN_R {
         printf("parametric function call\n");
+        $$ = new function_call($1, $3);
     }
 ;
 
@@ -186,21 +207,24 @@ value:
     }
     | IDENTIFIER {
         printf("got scalar identifier as value\n");
-        $$ = new value($1);
+        $$ = new value(new variable_ref($1));
     }
     | arithmetic {
         printf("got arithmetic as value\n");
+        $$ = new value($1);
     }
     | function_call {
         printf("got function call as value\n");
+        $$ = new value($1);
     }
     | IDENTIFIER DOT IDENTIFIER {
         printf("got struct %s member %s as value\n", $1, $3);
+        $$ = new value($1, $3);
     }
     | IDENTIFIER B_L_SQUARE value B_R_SQUARE {
         printf("got array identifier as value\n");
+        $$ = new value($1, $3);
     }
-    // todo: array
 ;
 
 expression:
@@ -224,39 +248,51 @@ expression:
 command:
     variable {
         printf("got var decl command\n");
+        $$ = new command($1);
     }
     | expression SEMICOLON {
         printf("got expression decl command\n");
+        $$ = new command($1, false);
     }
     | RETURN expression SEMICOLON {
         printf("got return statement\n");
+        $$ = new command($2, true);
     }
     | loop {
         printf("got loop command\n");
+        $$ = nullptr; // TODO
     }
     | condition {
         printf("got condition command\n");
+        $$ = nullptr; // TODO
     }
 ;
 
 commands:
-    command {
-        printf("got a terminal command definition\n");
-    }
-    | commands command {
+    commands command {
         printf("got a non-terminal command definition\n");
+        $$ = $1;
+        $1->push_back($2);
+    }
+    | {
+        $$ = new std::list<command*>();
     }
 ;
 
 block:
     B_L_CURLY B_R_CURLY {
         printf("got an empty block\n");
+        $$ = new block(nullptr);
     }
     | B_L_CURLY commands B_R_CURLY {
         printf("got a multi-line block\n");
+        $$ = new block($2);
     }
     | command {
         printf("got a single-line block\n");
+        std::list<command*>* lst = new std::list<command*>();
+        lst->push_back($1);
+        $$ = new block(lst);
     }
 ;
 
@@ -272,15 +308,19 @@ parameters:
 function:
     declaration PAREN_L PAREN_R block {
         printf("got a function definition (no params)\n");
+        $$ = new function_declaration($1, $4);
     }
     | declaration PAREN_L parameters PAREN_R block {
         printf("got a function definition (with params)\n");
+        $$ = new function_declaration($1, $5, $3);
     }
     | declaration PAREN_L PAREN_R SEMICOLON {
         printf("got a function forward declaration (no params)\n");
+        $$ = new function_declaration($1, true);
     }
     | declaration PAREN_L parameters PAREN_R SEMICOLON {
         printf("got a function forward declaration (with params)\n");
+        $$ = new function_declaration($1, true, $3);
     }
 ;
 
