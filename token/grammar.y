@@ -9,6 +9,7 @@ int yyerror(const char *s);
 program* ast_root = NULL;
 
 extern FILE *yyin, *yyout;
+bool verbose_out = false;
 
 %}
 
@@ -23,6 +24,7 @@ extern FILE *yyin, *yyout;
     char comparsion[5];
     char parenthesis;
     char bracket;
+    char b_not;
 
     program* prog;
     std::list<global_statement*>* global_statement;
@@ -38,6 +40,11 @@ extern FILE *yyin, *yyout;
     std::list<command*>* commands;
     block* block;
     std::list<declaration*>* parameters;
+    boolean_expression* boolean_expression;
+    condition* condition;
+    loop* loop;
+    std::list<declaration*>* multi_declaration;
+    struct_definition* struct_def;
 }
 
 %define parse.error verbose
@@ -65,6 +72,11 @@ extern FILE *yyin, *yyout;
 %type <commands> commands
 %type <block> block
 %type <parameters> parameters
+%type <boolean_expression> boolean_expression
+%type <loop> loop
+%type <condition> condition
+%type <multi_declaration> multi_declaration
+%type <struct_def> struct_def
 %type <str_literal> STR_LITERAL
 %type <int_literal> INT_LITERAL
 %type <identifier> IDENTIFIER
@@ -73,6 +85,7 @@ extern FILE *yyin, *yyout;
 %type <a_op> A_OP
 %type <b_op> B_OP
 %type <comparsion> COMPARSION;
+%type <b_not> NOT;
 
 %type <bracket> B_L_CURLY;
 %type <bracket> B_R_CURLY;
@@ -101,6 +114,10 @@ global:
         $$ = $1;
         $1->push_back($2);
     }
+    | global struct_def {
+        $$ = $1;
+        $1->push_back($2);
+    }
     | {
         $$ = new std::list<global_statement*>();
     }
@@ -117,16 +134,19 @@ declaration:
     }
     | STRUCT IDENTIFIER IDENTIFIER {
         printf("variable structure %s: identifier=%s\n", $2, $3);
-        $$ = new declaration(1, $3); // TODO: FIX THISSSS
+        $$ = new declaration(TYPE_META_STRUCT, $2, $3);
     }
 ;
 
 multi_declaration:
-    declaration SEMICOLON {
-        printf("struct terminal declaration\n");
-    }
-    | multi_declaration declaration SEMICOLON {
+    multi_declaration declaration SEMICOLON {
         printf("struct non-terminal declaration\n");
+        $$ = $1;
+        $1->push_back($2);
+    }
+    | {
+        printf("struct terminal declaration\n");
+        $$ = new std::list<declaration*>();
     }
 ;
 
@@ -143,45 +163,53 @@ variable:
         printf("got constant delcaration with value assignment\n");
         $$ = new variable_declaration($2, true, $4);
     }
-    | STRUCT IDENTIFIER B_L_CURLY multi_declaration B_R_CURLY SEMICOLON {
+;
+
+struct_def:
+    STRUCT IDENTIFIER B_L_CURLY multi_declaration B_R_CURLY SEMICOLON {
         printf("got structure definition\n");
-        $$ = new variable_declaration(NULL); // TODO: FIX THISSSS
+        $$ = new struct_definition($2, $4);
     }
 ;
 
 condition:
     IF PAREN_L expression PAREN_R block {
         printf("got if condition (without else)\n");
+        $$ = new condition($3, $5);
     }
     | IF PAREN_L expression PAREN_R block ELSE block {
         printf("got if condition (with else)\n");
+        $$ = new condition($3, $5, $7);
     }
 ;
 
 loop:
     WHILE PAREN_L expression PAREN_R block {
         printf("got while loop\n");
+        $$ = new while_loop($3, $5);
     }
     | FOR PAREN_L expression SEMICOLON expression SEMICOLON expression PAREN_R block {
         printf("got for loop\n");
+        $$ = new for_loop($3, $5, $7, $9);
     }
 ;
 
 arithmetic:
     value A_OP value {
         printf("operator %s\n", $2);
-        $$ = new arithmetic($1, $2, $3);
+        $$ = new arithmetic($1, arithmetic::str_to_op($2), $3);
     }
 ;
 
 expressions:
     expressions COMMA value {
-        printf("expression list as a function call parameter\n");
+        printf("expression list as a function call parameter (recursive)\n");
         $$ = $1;
         $1->push_back($3);
     }
-    | {
-        $$ = new std::list<value*>();
+    | value {
+        printf("expression list as a function call parameter (single)\n");
+        $$ = new std::list<value*>{$1};
     }
 ;
 
@@ -206,7 +234,7 @@ value:
         $$ = new value($1);
     }
     | IDENTIFIER {
-        printf("got scalar identifier as value\n");
+        printf("got scalar identifier %s as value\n", $1);
         $$ = new value(new variable_ref($1));
     }
     | arithmetic {
@@ -230,18 +258,23 @@ value:
 expression:
     IDENTIFIER ASSIGN value {
         printf("assigning value to %s\n", $1);
+        $$ = new assign_expression($1, (value*)nullptr, $3);
     }
     | IDENTIFIER B_L_SQUARE value B_R_SQUARE ASSIGN value {
         printf("assigning value to array element %s\n", $1);
+        $$ = new assign_expression($1, $3, $6);
     }
     | IDENTIFIER DOT IDENTIFIER ASSIGN value {
         printf("assigning to struct %s member %s\n", $1, $3);
+        $$ = new assign_expression($1, $3, $5);
     }
     | value {
         printf("got value (expression)\n");
+        $$ = new expression($1);
     }
     | boolean_expression {
         printf("got boolean expression\n");
+        $$ = new expression($1);
     }
 ;
 
@@ -260,11 +293,11 @@ command:
     }
     | loop {
         printf("got loop command\n");
-        $$ = nullptr; // TODO
+        $$ = new command($1);
     }
     | condition {
         printf("got condition command\n");
-        $$ = nullptr; // TODO
+        $$ = new command($1);
     }
 ;
 
@@ -299,9 +332,12 @@ block:
 parameters:
     declaration {
         printf("got a terminal function parameter definition\n");
+        $$ = new std::list<declaration*>{ $1 };
     }
     | parameters COMMA declaration {
         printf("got a non-terminal function parameter definition\n");
+        $$ = $1;
+        $1->push_back($3);
     }
 ;
 
@@ -316,35 +352,42 @@ function:
     }
     | declaration PAREN_L PAREN_R SEMICOLON {
         printf("got a function forward declaration (no params)\n");
-        $$ = new function_declaration($1, true);
+        $$ = new function_declaration($1, nullptr);
     }
     | declaration PAREN_L parameters PAREN_R SEMICOLON {
         printf("got a function forward declaration (with params)\n");
-        $$ = new function_declaration($1, true, $3);
+        $$ = new function_declaration($1, nullptr, $3);
     }
 ;
 
 boolean_expression:
     value {
         printf("got value (boolean expression)\n");
+        $$ = new boolean_expression($1);
     }
     | value COMPARSION value {
         printf("got compare (boolean expression)\n");
+        $$ = new boolean_expression($1, $3, boolean_expression::str_to_bool_op($2));
     }
     | NOT boolean_expression {
         printf("got negation (boolean expression)\n");
+        $$ = new boolean_expression($2, nullptr, boolean_expression::str_to_bool_op($1));
     }
     | PAREN_L boolean_expression PAREN_R {
         printf("got enclosed expression (boolean expression)\n");
+        $$ = $2;
     }
     | boolean_expression L_OP boolean_expression {
         printf("got boolean expression (boolean expression)\n");
+        $$ = new boolean_expression($1, $3, boolean_expression::str_to_bool_op($2));
     }
     | TRUE {
         printf("got true (boolean expression)\n");
+        $$ = new boolean_expression(true);
     }
     | FALSE {
         printf("got false (boolean expression)\n");
+        $$ = new boolean_expression(false);
     }
 ;
 
@@ -361,6 +404,6 @@ int parse(FILE* input, FILE* output)
     yyin = input;
     yyout = output;
 
-    yyparse();
+    return yyparse();
 }
 

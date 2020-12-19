@@ -22,7 +22,7 @@ endif()
 add_executable(CMM
         types.h types.cpp main.cpp
     ${FLEX_cmmflex_OUTPUTS} ${BISON_cmmbison_OUTPUTS}
-)
+        ast.cpp)
 
 if(NOT WIN32)
     target_link_libraries(CMM fl)

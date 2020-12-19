@@ -7,6 +7,8 @@ extern program* ast_root;
 
 int main(int argc, char* argv[])
 {
+    int parseresult = 0;
+
     FILE* fp;
     if (argc == 2) {
         // file name provided
@@ -20,11 +22,36 @@ int main(int argc, char* argv[])
         }
 
         // parse the provided file
-        parse(fp, stdout);
+        parseresult = parse(fp, stdout);
 
     } else {
         // no file provided, parse stdin
-        parse(stdin, stdout);
+        parseresult = parse(stdin, stdout);
+    }
+
+    if (parseresult != 0) {
+        std::cerr << "Compilation ended with errors" << std::endl;
+        return -1;
+    }
+
+    std::cout << "AST complete, generating code" << std::endl;
+
+    evaluate_context ctx;
+    evaluate_error result = ast_root->evaluate(ctx);
+
+    switch (result) {
+        case evaluate_error::ok:
+            std::cout << "OK" << std::endl;
+            break;
+        case evaluate_error::undeclared_identifier:
+            std::cerr << "Undeclared identifier" << std::endl;
+            break;
+        case evaluate_error::unknown_typename:
+            std::cerr << "Unknown typename" << std::endl;
+            break;
+        case evaluate_error::invalid_state:
+            std::cerr << "Invalid state" << std::endl;
+            break;
     }
 
     return 0;
