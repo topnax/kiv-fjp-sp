@@ -1,12 +1,22 @@
 %option noyywrap
 %{
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
+#include <cstdint>
 #include "ast.h"
 #include "grammar.tab.h"
 #include "types.h"
 #define yyterminate() return END
+
+#ifdef WIN32
+#define YY_NO_UNISTD_H
+#include <io.h>
+#define isatty _isatty
+#else
+#define YY_DECL extern "C" int yylex (void)
+#endif
+
 void showError(const char* token);
 %}
 

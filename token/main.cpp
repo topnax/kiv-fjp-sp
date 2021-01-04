@@ -54,5 +54,10 @@ int main(int argc, char* argv[])
             break;
     }
 
+    if (result == evaluate_error::ok) {
+        std::cout << std::endl << "Transcribed program: " << std::endl;
+        std::cout << ctx.transcribe() << std::endl;
+    }
+
     return 0;
 }

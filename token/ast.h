@@ -1,20 +1,89 @@
 #pragma once
 
 #include <list>
-#include <variant>
 #include <string>
+#include <vector>
 #include <map>
 #include <stack>
+#include <sstream>
 #include <iostream>
 
 #include "types.h"
 
-enum class evaluate_error
-{
+enum class evaluate_error {
     ok,
     undeclared_identifier,
     unknown_typename,
     invalid_state,
+};
+
+// following Wirth's original p-code machine design
+enum class pcode_fct {
+    LIT,
+    OPR,
+    LOD,
+    STO,
+    CAL,
+    INT,
+    JMP,
+    JPC,
+};
+
+enum class pcode_opr {
+    RETURN = 0,
+
+    // arithmetic operations
+    NEGATE = 1, // arithmetic
+    ADD = 2,
+    SUBTRACT = 3,
+    MULTIPLY = 4,
+    DIVIDE = 5,
+
+    // compare operations
+    ODD = 6,
+    // 7 is undefined
+    EQUAL = 8,
+    NOTEQUAL = 9,
+    LESS = 10,
+    GREATER_OR_EQUAL = 11,
+    GREATER = 12,
+    LESS_OR_EQUAL = 13,
+};
+
+struct pcode_instruction {
+
+    pcode_instruction() : instruction(pcode_fct::LIT), lvl(0), arg(0) {
+    }
+
+    pcode_instruction(pcode_fct fct, int level, int argument) : instruction(fct), lvl(level), arg(argument) {
+    }
+
+    pcode_instruction(pcode_fct fct, int argument) : instruction(fct), lvl(0), arg(argument) {
+    }
+
+    pcode_fct instruction;
+    int lvl;
+    int arg;
+
+    std::string to_string() const {
+        std::string ret;
+
+        switch (instruction) {
+            case pcode_fct::LIT: ret = "LIT"; break;
+            case pcode_fct::OPR: ret = "OPR"; break;
+            case pcode_fct::LOD: ret = "LOD"; break;
+            case pcode_fct::STO: ret = "STO"; break;
+            case pcode_fct::CAL: ret = "CAL"; break;
+            case pcode_fct::INT: ret = "INT"; break;
+            case pcode_fct::JMP: ret = "JMP"; break;
+            case pcode_fct::JPC: ret = "JPC"; break;
+            default: ret = "???"; break;
+        }
+
+        ret += " " + std::to_string(lvl) + " " + std::to_string(arg);
+
+        return ret;
+    }
 };
 
 struct block;
@@ -76,6 +145,7 @@ struct evaluate_context {
     // push new scope defined by block
     bool push_scope(block* blk) {
         current_scope.push(blk);
+        return true;
     }
 
     // pop current scope and undeclare all identifiers
@@ -92,12 +162,37 @@ struct evaluate_context {
 
         current_scope.pop();
 
+        std::vector<std::string> toerase;
+
         // undeclare identifiers from this scope
         for (auto decl : declared_identifiers) {
             if (decl.second.scope == scope) {
-                undeclare_identifier(decl.first);
+                toerase.push_back(decl.first);
             }
         }
+
+        for (auto decl : toerase) {
+            undeclare_identifier(decl);
+        }
+
+        return true;
+    }
+
+    // generated instructions
+    std::vector<pcode_instruction> generated_program;
+
+    void gen_instruction(pcode_fct instr, int argument, int level = 0) {
+        generated_program.emplace_back(instr, level, argument);
+    }
+
+    std::string transcribe() const {
+        std::ostringstream out;
+
+        for (auto& instr : generated_program) {
+            out << instr.to_string() << std::endl;
+        }
+
+        return out.str();
     }
 };
 
@@ -182,6 +277,19 @@ struct boolean_expression : public ast_node {
         return operation::none;
     }
 
+    static pcode_opr operation_to_pcode_opr(const operation oper) {
+        switch (oper) {
+            case operation::c_eq: return pcode_opr::EQUAL;
+            case operation::c_neq: return pcode_opr::NOTEQUAL;
+            case operation::c_gt: return pcode_opr::GREATER;
+            case operation::c_lt: return pcode_opr::LESS;
+            case operation::c_ge: return pcode_opr::GREATER_OR_EQUAL;
+            case operation::c_le: return pcode_opr::LESS_OR_EQUAL;
+        }
+
+        return pcode_opr::NEGATE; // dummy, should not happen
+    }
+
     boolean_expression(value* val, value* val2, operation comp_op = operation::none)
         : cmpval1(val), cmpval2(val2), op(comp_op) {
         //
@@ -201,33 +309,10 @@ struct boolean_expression : public ast_node {
 
     value* cmpval1 = nullptr, *cmpval2 = nullptr;
     boolean_expression* boolexp1 = nullptr, *boolexp2 = nullptr;
-    operation op;
-    bool preset_value;
+    operation op = operation::none;
+    bool preset_value = false;
 
-    virtual evaluate_error evaluate(evaluate_context& context) override {
-
-        if (cmpval1) {
-            if (cmpval2) {
-                // compare cmpval1 and 2
-            }
-            else {
-                // is cmpval1 non zero?
-            }
-        }
-        else if (boolexp1) {
-            if (boolexp2) {
-                // bool operation on boolexp1 and 2
-            }
-            else {
-                // is boolexp1 true?
-            }
-        }
-        else {
-            // use "preset_value"
-        }
-
-        return evaluate_error::ok;
-    }
+    virtual evaluate_error evaluate(evaluate_context& context) override;
 };
 
 // any expression (assign, boolean or value)
@@ -310,6 +395,8 @@ struct arithmetic : public ast_node {
         else if (str == "/") {
             return operation::div;
         }
+
+        return operation::none;
     }
 
     arithmetic(value* lhs, operation valop, value* rhs)
@@ -370,7 +457,8 @@ struct variable_ref : public ast_node {
 
 struct value : public ast_node {
     enum class value_type {
-        const_literal,
+        const_int_literal,
+        const_str_literal,
         variable,
         return_value,
         member,
@@ -395,11 +483,11 @@ struct value : public ast_node {
         arithmetic* arithmetic_expression;
     } content;
 
-    value(int val) : val_type(value_type::const_literal) {
+    value(int val) : val_type(value_type::const_int_literal) {
         content.int_value = val;
     }
 
-    value(char* val) : val_type(value_type::const_literal) {
+    value(char* val) : val_type(value_type::const_str_literal) {
         content.str_value = val;
     }
 
@@ -432,7 +520,10 @@ struct value : public ast_node {
         // evaluate will always push value to stack
 
         switch (val_type) {
-            case value_type::const_literal:
+            case value_type::const_int_literal:
+                //
+                break;
+            case value_type::const_str_literal:
                 //
                 break;
             case value_type::variable:
@@ -732,7 +823,6 @@ struct program : public ast_node {
         }
 
         return evaluate_error::ok;
-
     }
 };
 

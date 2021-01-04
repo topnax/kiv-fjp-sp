@@ -11,5 +11,6 @@ int convert_to_type_enum(char *in) {
     } else if (strcmp(in, "bool") == 0) {
         return TYPE_BOOL;        
     }
+    return -1;
 }
 

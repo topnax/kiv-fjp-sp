@@ -3,13 +3,15 @@
 #include <cstdio>
 #include "ast.h"
 
-int yylex();
+extern int yylex();
 int yyerror(const char *s);
 
 program* ast_root = NULL;
 
 extern FILE *yyin, *yyout;
 bool verbose_out = false;
+
+#define YY_NO_UNISTD_H
 
 %}
 

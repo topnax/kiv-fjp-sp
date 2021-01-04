@@ -54,6 +54,38 @@ evaluate_error arithmetic::evaluate(evaluate_context& context) {
     return evaluate_error::ok;
 }
 
+evaluate_error boolean_expression::evaluate(evaluate_context& context) {
+
+    if (cmpval1) {
+        if (cmpval2) {
+            // compare cmpval1 and 2
+            cmpval1->evaluate(context);
+            cmpval2->evaluate(context);
+            context.gen_instruction(pcode_fct::OPR, static_cast<int>(operation_to_pcode_opr(op)));
+        }
+        else {
+            // is cmpval1 nonzero?
+            cmpval1->evaluate(context);
+            context.gen_instruction(pcode_fct::LIT, 0);
+            context.gen_instruction(pcode_fct::OPR, static_cast<int>(pcode_opr::NOTEQUAL));
+        }
+    }
+    else if (boolexp1) {
+        if (boolexp2) {
+            // bool operation on boolexp1 and 2
+        }
+        else {
+            // is boolexp1 true?
+        }
+    }
+    else {
+        // use "preset_value"
+        context.gen_instruction(pcode_fct::LIT, preset_value ? 1 : 0);
+    }
+
+    return evaluate_error::ok;
+}
+
 boolean_expression::~boolean_expression() {
     if (cmpval1) {
         delete cmpval1;
