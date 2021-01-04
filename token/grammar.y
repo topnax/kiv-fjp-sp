@@ -3,7 +3,7 @@
 #include <cstdio>
 #include "ast.h"
 
-extern int yylex();
+extern "C" int yylex();
 int yyerror(const char *s);
 
 program* ast_root = NULL;
