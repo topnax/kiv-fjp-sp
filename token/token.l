@@ -3,7 +3,6 @@
 
 #include <cstdio>
 #include <cstring>
-#include <cstdint>
 #include "ast.h"
 #include "grammar.tab.h"
 #include "types.h"
@@ -13,6 +12,7 @@
 #define YY_NO_UNISTD_H
 #include <io.h>
 #define isatty _isatty
+#define fileno _fileno
 #else
 #define YY_DECL extern "C" int yylex (void)
 #endif
@@ -21,7 +21,7 @@ void showError(const char* token);
 %}
 
 type        (int|string|char|bool)
-identifier  ([a-z][a-zA-Z0-9]*)
+identifier  ([a-z_][a-zA-Z0-9_]*)
 int_literal      ([0-9])+
 str_literal \"(\\.|[^"\\])*\"
 l_op        (\|\||\&\&)
@@ -43,6 +43,7 @@ false               {return FALSE;}
 "."                 {return DOT;}
 "="                 {return ASSIGN;}
 "!"                 {return NOT;}
+"?"                 {return QUESTION;}
 
 {type}		        {yylval.type = convert_to_type_enum(yytext); return TYPE;}
 {identifier}		{sscanf(yytext, "%s", yylval.identifier); return IDENTIFIER;}
@@ -69,6 +70,7 @@ false               {return FALSE;}
 "("      		    {yylval.parenthesis = yytext[0]; return PAREN_L;}
 ")"      		    {yylval.parenthesis = yytext[0]; return PAREN_R;}
 ";"      		    {return SEMICOLON;}
+":"                 {return COLON;}
 " "      		    ;
 "\t"                ;
 "\r"                ;

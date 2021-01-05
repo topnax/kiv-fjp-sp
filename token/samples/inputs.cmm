@@ -1,0 +1,15 @@
+
+int main() {
+
+    consolePrintStr("Zadejte prvni cislo: ");
+    int a = consoleScanNum();
+
+    consolePrintStr("Zadejte druhe cislo: ");
+    int b = consoleScanNum();
+
+    string jeneni = (a > b) ? "prvni > druhe" : "prvni <= druhe";
+
+    consolePrintLnStr(jeneni);
+
+    return 0;
+}

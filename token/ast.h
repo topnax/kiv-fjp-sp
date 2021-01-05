@@ -7,6 +7,7 @@
 #include <stack>
 #include <sstream>
 #include <iostream>
+#include <limits>
 
 #include "types.h"
 
@@ -15,10 +16,11 @@ enum class evaluate_error {
     undeclared_identifier,
     unknown_typename,
     invalid_state,
+    unresolved_reference,
 };
 
 // following Wirth's original p-code machine design
-enum class pcode_fct {
+enum class pcode_fct : uint8_t {
     LIT,
     OPR,
     LOD,
@@ -29,7 +31,7 @@ enum class pcode_fct {
     JPC,
 };
 
-enum class pcode_opr {
+enum class pcode_opr : int {
     RETURN = 0,
 
     // arithmetic operations
@@ -50,20 +52,58 @@ enum class pcode_opr {
     LESS_OR_EQUAL = 13,
 };
 
+// the stack frame mechanism is built in a way that this number would eventually "converge" to global scope
+// to speed things up, the interpreter immediatelly jumps to global scope base when this level valus is seen
+constexpr uint8_t LevelGlobal = 255;
+
+// this is where builtin functions start
+constexpr int BuiltinBase = 0x00FFFFFF;
+
+#pragma pack(push, 1)
+
+struct binary_instruction {
+    pcode_fct f;
+    uint8_t l;		// [0..254] / 255 = global scope
+    int a;
+};
+
+#pragma pack(pop)
+
+struct pcode_arg {
+
+    pcode_arg(int val) : isref(false), value(val), symbolref("") {
+    }
+    pcode_arg(pcode_opr val) : isref(false), value(static_cast<int>(val)), symbolref("") {
+    }
+    pcode_arg(const std::string& sym, bool function = false) : isref(true), isfunc(function), value(0), symbolref(sym) {
+    }
+
+    bool isref;
+    bool isfunc = false;
+    int value;
+    std::string symbolref;
+
+    void resolve(int addr_value) {
+        value = addr_value;
+        isref = false;
+        symbolref = "";
+    }
+};
+
 struct pcode_instruction {
 
     pcode_instruction() : instruction(pcode_fct::LIT), lvl(0), arg(0) {
     }
 
-    pcode_instruction(pcode_fct fct, int level, int argument) : instruction(fct), lvl(level), arg(argument) {
+    pcode_instruction(pcode_fct fct, int level, pcode_arg argument) : instruction(fct), lvl(level), arg(argument) {
     }
 
-    pcode_instruction(pcode_fct fct, int argument) : instruction(fct), lvl(0), arg(argument) {
+    pcode_instruction(pcode_fct fct, pcode_arg argument) : instruction(fct), lvl(0), arg(argument) {
     }
 
     pcode_fct instruction;
     int lvl;
-    int arg;
+    pcode_arg arg;
 
     std::string to_string() const {
         std::string ret;
@@ -80,7 +120,7 @@ struct pcode_instruction {
             default: ret = "???"; break;
         }
 
-        ret += " " + std::to_string(lvl) + " " + std::to_string(arg);
+        ret += " " + std::to_string(lvl) + " " + (arg.isref ? "<"+arg.symbolref+">" : std::to_string(arg.value));
 
         return ret;
     }
@@ -88,6 +128,7 @@ struct pcode_instruction {
 
 struct block;
 struct declaration;
+struct value;
 
 // struct of declared identifier
 struct declared_identifier {
@@ -102,11 +143,19 @@ struct evaluate_context {
     // defined structures
     std::map<std::string, std::list<declaration*>*> struct_defs;
 
+    // size of global variables
+    int global_frame_size = 0;
+    std::map<std::string, int> global_identifier_cell;
+    // global initializers table
+    std::map<std::string, value*> global_initializers;
+    // string literals to be defined (key = cell where string starts)
+    std::map<int, std::string> string_literals;
+
     // declare identifier in current scope
     bool declare_identifier(const std::string& identifier) {
         if (declared_identifiers.find(identifier) == declared_identifiers.end()) {
             declared_identifiers[identifier] = {
-                current_scope.empty() ? nullptr : current_scope.top()
+                get_current_scope()
             };
             return true;
         }
@@ -140,6 +189,14 @@ struct evaluate_context {
 
     bool is_struct_defined(const std::string& name) {
         return (struct_defs.find(name) != struct_defs.end());
+    }
+
+    int store_global_string_literal(const std::string& lit) {
+        int ret = global_frame_size;
+        global_frame_size += static_cast<int>(lit.length()) + 1;
+        string_literals[ret] = lit;
+
+        return ret;
     }
 
     // push new scope defined by block
@@ -181,11 +238,13 @@ struct evaluate_context {
     // generated instructions
     std::vector<pcode_instruction> generated_program;
 
-    void gen_instruction(pcode_fct instr, int argument, int level = 0) {
+    int gen_instruction(pcode_fct instr, pcode_arg argument, int level = 0) {
         generated_program.emplace_back(instr, level, argument);
+
+        return static_cast<int>(generated_program.size() - 1);
     }
 
-    std::string transcribe() const {
+    std::string text_out() const {
         std::ostringstream out;
 
         for (auto& instr : generated_program) {
@@ -194,6 +253,26 @@ struct evaluate_context {
 
         return out.str();
     }
+
+    bool binary_out(std::vector<binary_instruction>& out) const {
+        binary_instruction bi;
+
+        for (auto& instr : generated_program) {
+            bi.f = instr.instruction;
+            bi.l = instr.lvl;
+            bi.a = instr.arg.value;
+
+            out.push_back(bi);
+        }
+
+        return true;
+    }
+
+    block* get_current_scope() const {
+        return current_scope.empty() ? nullptr : current_scope.top();
+    }
+
+    bool find_identifier(const std::string& identifier, int& level, int& offset);
 };
 
 // used by block to start and end scope
@@ -358,17 +437,7 @@ struct assign_expression : public expression {
     value* arrayindex = nullptr;
     value* assignvalue;
 
-    virtual evaluate_error evaluate(evaluate_context& context) override {
-
-        if (!context.is_identifier_declared(identifier)) {
-            return evaluate_error::undeclared_identifier;
-        }
-
-        //
-
-        return evaluate_error::ok;
-
-    }
+    virtual evaluate_error evaluate(evaluate_context& context) override;
 };
 
 // arithmetic expression
@@ -399,6 +468,17 @@ struct arithmetic : public ast_node {
         return operation::none;
     }
 
+    static pcode_opr operation_to_pcode_opr(operation oper) {
+        switch (oper) {
+            case operation::add: return pcode_opr::ADD;
+            case operation::sub: return pcode_opr::SUBTRACT;
+            case operation::mul: return pcode_opr::MULTIPLY;
+            case operation::div: return pcode_opr::DIVIDE;
+        }
+
+        return pcode_opr::NEGATE;
+    }
+
     arithmetic(value* lhs, operation valop, value* rhs)
         : lhs_val(lhs), rhs_val(rhs), op(valop) {
         //
@@ -421,19 +501,7 @@ struct function_call : public ast_node {
     std::string function_identifier;
     std::list<value*>* parameters;
 
-    virtual evaluate_error evaluate(evaluate_context& context) override {
-
-        std::cout << "Function call: " << function_identifier << std::endl;
-
-        // TODO: check if identifier is function and if parameters match function declaration
-        if (!context.is_identifier_declared(function_identifier)) {
-            return evaluate_error::undeclared_identifier;
-        }
-
-        // this should push return value to stack maybe
-
-        return evaluate_error::ok;
-    }
+    virtual evaluate_error evaluate(evaluate_context& context) override;
 };
 
 // wrapper for variable reference in value token
@@ -463,32 +531,48 @@ struct value : public ast_node {
         return_value,
         member,
         array_element,
-        arithmetic
+        arithmetic,
+        ternary
     };
 
     value_type val_type;
     union {
         int int_value;
-        char* str_value;
         variable_ref* variable;
         function_call* call;
         struct {
-            char* struct_name;
-            char* member;
-        } struct_path;
-        struct {
-            char* array_name;
+            variable_ref* array;
             value* index;
         } array_element;
         arithmetic* arithmetic_expression;
+        struct {
+            boolean_expression* boolexpr;
+            value* positive;
+            value* negative;
+        } ternary;
     } content;
+
+    std::string str_base; // str_value, struct_name
+    std::string member_spec;
 
     value(int val) : val_type(value_type::const_int_literal) {
         content.int_value = val;
     }
 
-    value(char* val) : val_type(value_type::const_str_literal) {
-        content.str_value = val;
+    value(const std::string& val) : val_type(value_type::const_str_literal) {
+
+        if (val.size() >= 2 && val[0] == '\"' && val[val.size() - 1] == '\"') {
+            str_base = val.substr(1, val.size() - 2);
+        }
+        else {
+            str_base = val;
+        }
+    }
+
+    value(boolean_expression* exp, value* positive, value* negative) : val_type(value_type::ternary) {
+        content.ternary.boolexpr = exp;
+        content.ternary.positive = positive;
+        content.ternary.negative = negative;
     }
 
     value(variable_ref* varref) : val_type(value_type::variable) {
@@ -499,13 +583,13 @@ struct value : public ast_node {
         content.call = func_call;
     }
 
-    value(char* structname, char* member) : val_type(value_type::member) {
-        content.struct_path.struct_name = structname;
-        content.struct_path.member = member;
+    value(const std::string& structname, const std::string& member) : val_type(value_type::member) {
+        str_base = structname;
+        member_spec = member;
     }
 
-    value(char* arrayname, value* index) : val_type(value_type::array_element) {
-        content.array_element.array_name = arrayname;
+    value(variable_ref* array, value* index) : val_type(value_type::array_element) {
+        content.array_element.array = array;
         content.array_element.index = index;
     }
 
@@ -515,33 +599,7 @@ struct value : public ast_node {
 
     virtual ~value();
 
-    virtual evaluate_error evaluate(evaluate_context& context) override {
-
-        // evaluate will always push value to stack
-
-        switch (val_type) {
-            case value_type::const_int_literal:
-                //
-                break;
-            case value_type::const_str_literal:
-                //
-                break;
-            case value_type::variable:
-                return content.variable->evaluate(context);
-            case value_type::return_value:
-                return content.call->evaluate(context);
-            case value_type::arithmetic:
-                return content.arithmetic_expression->evaluate(context);
-            case value_type::array_element:
-                //
-                break;
-            case value_type::member:
-                //
-                break;
-        }
-
-        return evaluate_error::ok;
-    }
+    virtual evaluate_error evaluate(evaluate_context& context) override;
 };
 
 struct variable_declaration;
@@ -588,23 +646,14 @@ struct block : public ast_node {
 
     std::list<command*>* commands;
 
-    virtual evaluate_error evaluate(evaluate_context& context) override {
+    int frame_size = 4; // call block and return value is implicitly present
+    std::map<std::string, int> identifier_cell;
 
-        std::cout << "Evaluating block" << std::endl;
-        scope_guard guard(context, this);
+    bool is_func_scope = false;
 
-        if (commands) {
-            for (command* cmd : *commands) {
-                evaluate_error ret = cmd->evaluate(context);
-                if (ret != evaluate_error::ok) {
-                    return ret;
-                }
-            }
-        }
+    std::list<variable_declaration>* injected_declarations = nullptr; // for function parameters
 
-        return evaluate_error::ok;
-
-    }
+    virtual evaluate_error evaluate(evaluate_context& context) override;
 };
 
 struct loop : public ast_node {
@@ -630,11 +679,28 @@ struct while_loop : public loop {
 
         std::cout << "Evaluating while loop" << std::endl;
 
-        //
+        evaluate_error ret = evaluate_error::ok;
+
+        // evaluate condition
+        int condpos = static_cast<int>(context.generated_program.size());
+        ret = cond_expr->evaluate(context);
+        if (ret != evaluate_error::ok) {
+            return ret;
+        }
+
+        // jump below loop block if false
+        int jpcpos = context.gen_instruction(pcode_fct::JPC, 0);
 
         if (loop_commands) {
-            return loop_commands->evaluate(context);
+            ret = loop_commands->evaluate(context);
+            if (ret != evaluate_error::ok) {
+                return ret;
+            }
+
+            context.gen_instruction(pcode_fct::JMP, condpos);
         }
+
+        context.generated_program[jpcpos].arg.value = static_cast<int>(context.generated_program.size());
 
         return evaluate_error::ok;
     }
@@ -647,19 +713,44 @@ struct for_loop : public loop {
     }
     virtual ~for_loop();
 
-    expression* init_expr, *cond_expr, *mod_expr;
+    expression* init_expr, *mod_expr;
+    expression *cond_expr;
 
     virtual evaluate_error evaluate(evaluate_context& context) override {
 
         std::cout << "Evaluating for loop" << std::endl;
 
-        //
+        evaluate_error ret = evaluate_error::ok;
 
-        if (loop_commands) {
-            return loop_commands->evaluate(context);
+        ret = init_expr->evaluate(context);
+        if (ret != evaluate_error::ok) {
+            return ret;
         }
 
-        //
+        int repeatpos = static_cast<int>(context.generated_program.size());
+
+        ret = cond_expr->evaluate(context);
+        if (ret != evaluate_error::ok) {
+            return ret;
+        }
+
+        int jpcpos = context.gen_instruction(pcode_fct::JPC, 0);
+
+        if (loop_commands) {
+            ret = loop_commands->evaluate(context);
+            if (ret != evaluate_error::ok) {
+                return ret;
+            }
+        }
+
+        ret = mod_expr->evaluate(context);
+        if (ret != evaluate_error::ok) {
+            return ret;
+        }
+
+        context.gen_instruction(pcode_fct::JMP, repeatpos);
+
+        context.generated_program[jpcpos].arg.value = static_cast<int>(context.generated_program.size());
 
         return evaluate_error::ok;
     }
@@ -681,20 +772,38 @@ struct condition : public ast_node {
 
         evaluate_error ret = evaluate_error::ok;
 
-        //
+        ret = cond_expr->evaluate(context);
+        if (ret != evaluate_error::ok) {
+            return ret;
+        }
+
+        int jpcpos = context.gen_instruction(pcode_fct::JPC, 0);
+        int truejmp = -1;
 
         if (true_commands) {
             ret = true_commands->evaluate(context);
             if (ret != evaluate_error::ok) {
                 return ret;
             }
+
+            // jump below else block if any
+            if (false_commands) {
+                truejmp = context.gen_instruction(pcode_fct::JMP, 0);
+            }
         }
 
+        // JPC will always jump here if the condition is false (it will either execute the false block or continue)
+        context.generated_program[jpcpos].arg.value = static_cast<int>(context.generated_program.size());
+
         if (false_commands) {
+
             ret = false_commands->evaluate(context);
             if (ret != evaluate_error::ok) {
                 return ret;
             }
+
+            // if there is a false command block, true command block must jump after this
+            context.generated_program[truejmp].arg.value = static_cast<int>(context.generated_program.size());
         }
 
         return evaluate_error::ok;
@@ -702,13 +811,13 @@ struct condition : public ast_node {
 };
 
 struct declaration : public ast_node {
-    declaration(int entity_type, char entity_identifier[30], int arraySize = 0)
+    declaration(int entity_type, const std::string& entity_identifier, int arraySize = 0)
         : type(entity_type), identifier(entity_identifier), array_size(arraySize) {
         //
     }
 
     declaration(int entity_type, std::string struct_name_identifier, std::string entity_identifier)
-        : type(entity_type), identifier(entity_identifier), struct_name(struct_name_identifier) {
+        : type(entity_type), identifier(entity_identifier), array_size(0), struct_name(struct_name_identifier) {
         //
     }
 
@@ -717,12 +826,54 @@ struct declaration : public ast_node {
     int array_size;
     std::string struct_name;
 
+    int override_frame_pos = std::numeric_limits<int>::max();
+
+    int determine_size(evaluate_context& context) const {
+        int size = 0;
+        if (type == TYPE_BOOL || type == TYPE_CHAR || type == TYPE_INT) {
+            size = 1;
+            if (array_size > 0) {
+                size *= array_size;
+            }
+        }
+        else if (type == TYPE_STRING) {
+            size = 1;
+            // TODO: somehow determine string size
+        }
+        else if (type == TYPE_META_STRUCT) {
+            auto decls = context.struct_defs.find(struct_name);
+            // prior is_struct_defined call ensures existence
+            for (auto decl : *decls->second) {
+                size += decl->determine_size(context);
+            }
+        }
+
+        return size;
+    }
+
     virtual evaluate_error evaluate(evaluate_context& context) override {
 
         if (type == TYPE_META_STRUCT) {
             if (!context.is_struct_defined(struct_name)) {
                 return evaluate_error::unknown_typename;
             }
+        }
+
+        block* scope = context.get_current_scope();
+
+        int size = determine_size(context);
+        if (scope) {
+            if (override_frame_pos == std::numeric_limits<int>::max()) {
+                scope->identifier_cell[identifier] = scope->frame_size;
+                scope->frame_size += size;
+            }
+            else {
+                scope->identifier_cell[identifier] = override_frame_pos;
+            }
+        }
+        else {
+            context.global_identifier_cell[identifier] = context.global_frame_size;
+            context.global_frame_size += size;
         }
 
         return evaluate_error::ok;
@@ -749,8 +900,21 @@ struct variable_declaration : public global_statement {
             return ret;
         }
 
-        // TODO: type and assigned address and memory
+        // TODO: type
         context.declare_identifier(decl->identifier);
+        if (initialized_by) {
+            if (context.get_current_scope()) {
+                ret = initialized_by->evaluate(context);
+                if (ret != evaluate_error::ok) {
+                    return ret;
+                }
+
+                context.gen_instruction(pcode_fct::STO, decl->identifier);
+            }
+            else {
+                context.global_initializers[decl->identifier] = initialized_by;
+            }
+        }
 
         return evaluate_error::ok;
 
@@ -780,7 +944,10 @@ struct struct_definition : public global_statement {
 struct function_declaration : public global_statement {
     function_declaration(declaration* fdecl, block* cmds, std::list<declaration*>* param_list = nullptr)
         : decl(fdecl), commands(cmds), parameters_list(param_list) {
-        //
+
+        if (commands) {
+            commands->is_func_scope = true;
+        }
     }
     virtual ~function_declaration();
 
@@ -792,12 +959,37 @@ struct function_declaration : public global_statement {
 
         std::cout << "Declaring function: " << decl->identifier << std::endl;
 
-        // TODO: parameters and assigned address and memory
         context.declare_identifier(decl->identifier);
 
         if (commands) {
-            return commands->evaluate(context);
+
+            context.global_identifier_cell[decl->identifier] = static_cast<int>(context.generated_program.size());
+
+            std::list<variable_declaration> param_decl;
+
+            // we expect parameters to be pushed to stack before function call
+            if (parameters_list) {
+                int pos = -static_cast<int>(parameters_list->size());
+                for (declaration* decl : *parameters_list) {
+                    decl->override_frame_pos = pos++;
+                    param_decl.emplace_back(decl, false, nullptr);
+                }
+            }
+
+            commands->injected_declarations = &param_decl;
+
+            evaluate_error ret = commands->evaluate(context);
+
+            for (auto& decl : param_decl) {
+                decl.decl = nullptr; // so the destructor will not delete it
+            }
+
+            if (ret != evaluate_error::ok) {
+                return ret;
+            }
         }
+
+        context.gen_instruction(pcode_fct::OPR, pcode_opr::RETURN);
 
         return evaluate_error::ok;
 
@@ -813,12 +1005,71 @@ struct program : public ast_node {
 
     std::list<global_statement*>* statements;
 
+    void declare_builtin(evaluate_context& context, const std::string& identifier, int slot) {
+        context.declare_identifier(identifier);
+        context.global_identifier_cell[identifier] = BuiltinBase + slot;
+    }
+
     virtual evaluate_error evaluate(evaluate_context& context) override {
+
+        declare_builtin(context, "consolePrintNum", 0);
+        declare_builtin(context, "consolePrintLnNum", 1);
+        declare_builtin(context, "consolePrintStr", 2);
+        declare_builtin(context, "consolePrintLnStr", 3);
+        declare_builtin(context, "consoleScanNum", 4);
+
+        int stackrespos = context.gen_instruction(pcode_fct::INT, 0);
+
+        context.global_frame_size += 4; // reserve space for virtual call block (for genericity) and "main" return value
+
+        int jmptoinitglobalspos = context.gen_instruction(pcode_fct::JMP, 0); // jump to code that initializes global variables
+
+        context.gen_instruction(pcode_fct::CAL, pcode_arg("main", true));
+        int looppos = context.gen_instruction(pcode_fct::JMP, 0);
+        context.generated_program[looppos].arg.value = looppos;
 
         for (auto* stmt : *statements) {
             evaluate_error ret = stmt->evaluate(context);
             if (ret != evaluate_error::ok) {
                 return ret;
+            }
+        }
+
+        int lvl, val;
+
+        context.generated_program[stackrespos].arg.value = context.global_frame_size;
+
+        context.generated_program[jmptoinitglobalspos].arg.value = static_cast<int>(context.generated_program.size());
+        for (auto& inits : context.global_initializers) {
+            inits.second->evaluate(context);
+            context.find_identifier(inits.first, lvl, val);
+            context.gen_instruction(pcode_fct::STO, val, lvl);
+        }
+        for (auto& strlit : context.string_literals) {
+
+            for (int i = 0; i <= /* include null-terminator */ strlit.second.size(); i++) {
+                context.gen_instruction(pcode_fct::LIT, strlit.second[i]);
+                context.gen_instruction(pcode_fct::STO, strlit.first + i);
+            }
+
+        }
+        context.gen_instruction(pcode_fct::JMP, jmptoinitglobalspos + 1); // jump back
+
+        // resolve functions in all program commands ("link")
+        for (int pos = 0; pos < context.generated_program.size(); pos++) {
+            auto& instr = context.generated_program[pos];
+            if (instr.instruction == pcode_fct::CAL && instr.arg.isref && instr.arg.isfunc) {
+                if (context.find_identifier(instr.arg.symbolref, lvl, val)) {
+                    instr.arg.resolve(val);
+                    instr.lvl = 0;
+                }
+            }
+        }
+
+        for (int pos = 0; pos < context.generated_program.size(); pos++) {
+            auto& instr = context.generated_program[pos];
+            if (instr.arg.isref) {
+                return evaluate_error::unresolved_reference;
             }
         }
 

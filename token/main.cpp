@@ -1,5 +1,6 @@
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
+#include <fstream>
 #include "ast.h"
 
 extern int parse(FILE* input, FILE* output);
@@ -52,11 +53,33 @@ int main(int argc, char* argv[])
         case evaluate_error::invalid_state:
             std::cerr << "Invalid state" << std::endl;
             break;
+        case evaluate_error::unresolved_reference:
+            std::cerr << "Unresolved reference" << std::endl;
+            break;
+    }
+
+    //if (result == evaluate_error::ok)
+    {
+        std::cout << std::endl << "Generated program: " << std::endl;
+        std::cout << ctx.text_out() << std::endl;
     }
 
     if (result == evaluate_error::ok) {
-        std::cout << std::endl << "Transcribed program: " << std::endl;
-        std::cout << ctx.transcribe() << std::endl;
+
+        std::vector<binary_instruction> b_out;
+        auto res = ctx.binary_out(b_out);
+        if (res) {
+
+            std::ofstream out("out.pl0", std::ios::out | std::ios::binary);
+
+            for (auto& bi : b_out) {
+                out.write(reinterpret_cast<const char*>(&bi), sizeof(binary_instruction));
+            }
+
+            out.close();
+
+            std::cout << std::endl << "Output stored to: out.pl0" << std::endl;
+        }
     }
 
     return 0;

@@ -3,7 +3,7 @@
 #include <cstdio>
 #include "ast.h"
 
-extern int yylex();
+extern "C" int yylex();
 int yyerror(const char *s);
 
 program* ast_root = NULL;
@@ -51,7 +51,7 @@ bool verbose_out = false;
 
 %define parse.error verbose
 
-%token STR_LITERAL INT_LITERAL OTHER SEMICOLON IDENTIFIER TYPE WHITESPACE L_OP B_OP A_OP COMPARSION
+%token STR_LITERAL INT_LITERAL OTHER SEMICOLON QUESTION COLON IDENTIFIER TYPE WHITESPACE L_OP B_OP A_OP COMPARSION
 %token ASSIGN NOT
 %token B_L_CURLY B_R_CURLY B_L_SQUARE B_R_SQUARE PAREN_L PAREN_R
 
@@ -96,6 +96,8 @@ bool verbose_out = false;
 
 %type <parenthesis> PAREN_L;
 %type <parenthesis> PAREN_R;
+
+// TODO: operator priority
 
 %start prog
 
@@ -247,13 +249,17 @@ value:
         printf("got function call as value\n");
         $$ = new value($1);
     }
+    | boolean_expression QUESTION value COLON value {
+        printf("got ternary operator\n");
+        $$ = new value($1, $3, $5);
+    }
     | IDENTIFIER DOT IDENTIFIER {
         printf("got struct %s member %s as value\n", $1, $3);
         $$ = new value($1, $3);
     }
     | IDENTIFIER B_L_SQUARE value B_R_SQUARE {
         printf("got array identifier as value\n");
-        $$ = new value($1, $3);
+        $$ = new value(new variable_ref($1), $3);
     }
 ;
 

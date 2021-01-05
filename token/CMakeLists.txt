@@ -4,6 +4,10 @@ project(CMM)
 
 file(MAKE_DIRECTORY generated)
 
+if(WIN32)
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
 if(NOT WIN32)
 find_package(FLEX)
 find_package(BISON)
@@ -19,10 +23,14 @@ else()
     set(BISON_cmmbison_OUTPUTS ${CMAKE_CURRENT_SOURCE_DIR}/generated/grammar.y.cpp)
 endif()
 
+file(GLOB_RECURSE pmachine_src pmachine/*.cpp pmachine/*.h)
+
 add_executable(CMM
-        types.h types.cpp main.cpp
+        types.h types.cpp main.cpp ast.h token.l grammar.y
     ${FLEX_cmmflex_OUTPUTS} ${BISON_cmmbison_OUTPUTS}
         ast.cpp)
+
+add_executable(pmachine ${pmachine_src})
 
 if(NOT WIN32)
     target_link_libraries(CMM fl)
