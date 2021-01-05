@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.14)
 
 project(CMM)
 
+SET(GCC_FPERMISSIVE_FLAGS "-fpermissive")
+
 file(MAKE_DIRECTORY generated)
 
 if(WIN32)
@@ -22,6 +24,9 @@ else()
     set(FLEX_cmmflex_OUTPUTS ${CMAKE_CURRENT_SOURCE_DIR}/generated/token.cpp)
     set(BISON_cmmbison_OUTPUTS ${CMAKE_CURRENT_SOURCE_DIR}/generated/grammar.y.cpp)
 endif()
+SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_FPERMISSIVE_FLAGS}")
+
+add_definitions(${GCC_FPERMISSIVE_FLAGS})
 
 file(GLOB_RECURSE pmachine_src pmachine/*.cpp pmachine/*.h)
 
