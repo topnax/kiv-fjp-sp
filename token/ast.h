@@ -29,6 +29,8 @@ enum class pcode_fct : uint8_t {
     INT,
     JMP,
     JPC,
+    STA,
+    LDA,
 };
 
 enum class pcode_opr : int {
@@ -117,6 +119,8 @@ struct pcode_instruction {
             case pcode_fct::INT: ret = "INT"; break;
             case pcode_fct::JMP: ret = "JMP"; break;
             case pcode_fct::JPC: ret = "JPC"; break;
+            case pcode_fct::STA: ret = "STA"; break;
+            case pcode_fct::LDA: ret = "LDA"; break;
             default: ret = "???"; break;
         }
 
