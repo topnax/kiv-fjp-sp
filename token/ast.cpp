@@ -60,12 +60,33 @@ evaluate_error assign_expression::evaluate(evaluate_context& context) {
 
     evaluate_error res = evaluate_error::ok;
 
+    // evaluate the expression to be assigned to the given identifier
     res = assignvalue->evaluate(context);
     if (res != evaluate_error::ok) {
         return res;
     }
 
-    context.gen_instruction(pcode_fct::STO, identifier);
+    if (arrayindex == nullptr) {
+        context.gen_instruction(pcode_fct::STO, identifier);
+    } else {
+        // array index is not null, an array is being accessed an array
+
+        // specify the base
+        // TODO other than 0 base?
+        context.gen_instruction(pcode_fct::LIT, 0);
+
+        // evaluate the array index
+        arrayindex->evaluate(context);
+
+        // put the address of the start of the array to the top of the stack
+        context.gen_instruction(pcode_fct::LIT, pcode_arg(identifier));
+
+        // add the index to the address representing the start of the array
+        context.gen_instruction(pcode_fct::OPR, pcode_opr::ADD);
+
+        // put the value to the memory specified by the address (first two values on the stack)
+        context.gen_instruction(pcode_fct::STA, 0, 0);
+    }
 
     return evaluate_error::ok;
 
@@ -223,7 +244,21 @@ evaluate_error value::evaluate(evaluate_context& context) {
         case value_type::arithmetic:
             return content.arithmetic_expression->evaluate(context);
         case value_type::array_element:
-            // TODO
+            // specify the base
+            // TODO other than base 0?
+            context.gen_instruction(pcode_fct::LIT, 0);
+
+            // evaluate index value
+            content.array_element.index->evaluate(context);
+
+            // store the address of the start of the array
+            context.gen_instruction(pcode_fct::LIT, pcode_arg(content.array_element.array->identifier));
+
+            // add the index to the address of the start
+            context.gen_instruction(pcode_fct::OPR, pcode_opr::ADD);
+
+            // put the value given by the address present at the top of the stack to the top of the stack
+            context.gen_instruction(pcode_fct::LDA,0,0);
             break;
         case value_type::member:
             // TODO
