@@ -12,6 +12,8 @@ enum class pcode_fct : uint8_t
 	CAL,
 	INT,
 	JMP,
+    STA,
+    LDA,
 	JPC
 };
 
@@ -193,6 +195,35 @@ int main(int argc, char** argv)
 				}
 				break;
 			}
+            case pcode_fct::LDA: {
+                auto addr = s[t];
+                t--;
+                auto b = base(s[t]);
+
+                if (true || DebugOutput) {
+                    std::cout << "=== LDA: addr:" << static_cast<int>(addr) << ", b: " << b  << std::endl;
+                }
+
+                s[t] = s[b + addr];
+
+                break;
+            }
+            case pcode_fct::STA : {
+
+                auto addr = s[t];
+                t--;
+                auto b = base(s[t]);
+                t--;
+                auto value = s[t];
+                t--;
+
+                if (true || DebugOutput) {
+                    std::cout << "=== STA: addr:" << static_cast<int>(addr) << ", b: " << b  << ", value:" << value << std::endl;
+                }
+
+                s[b + addr] = value;
+                break;
+            }
 			case pcode_fct::LOD:
 				if (DebugOutput) {
 					std::cout << "=== LOD: " << static_cast<int>(i.l) << " - " << i.a << std::endl;
