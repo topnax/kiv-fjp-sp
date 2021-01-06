@@ -5,5 +5,23 @@ int main() {
     pole[2] = 15;
     pole[3] = pole[0] + pole[2];
 
+    consolePrintLnNum(pole[0]);
+    consolePrintLnNum(pole[2]);
+    consolePrintLnNum(pole[3]);
+
+    int i = 0;
+    for (i = 0; i < 10; i = i + 1) {
+        pole[i] = i * 2;
+    }
+
+    pole[8] = 88;
+
+    for (i = 0; i < 10; i = i + 1) {
+        consolePrintLnNum(pole[i]);
+    }
+
+    i = 99;
+    consolePrintLnNum(i);
+
     return 0;
 }
