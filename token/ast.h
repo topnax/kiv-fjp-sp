@@ -84,9 +84,11 @@ struct pcode_arg {
     bool isfunc = false;
     int value;
     std::string symbolref;
+    // offset to be used when resolving to an actual address
+    int offset = 0;
 
     void resolve(int addr_value) {
-        value = addr_value;
+        value = addr_value + offset;
         isref = false;
         symbolref = "";
     }
@@ -137,6 +139,8 @@ struct value;
 // struct of declared identifier
 struct declared_identifier {
     block* scope;
+    int type;
+    std::string struct_name;
 };
 
 struct evaluate_context {
@@ -156,11 +160,13 @@ struct evaluate_context {
     std::map<int, std::string> string_literals;
 
     // declare identifier in current scope
-    bool declare_identifier(const std::string& identifier) {
+    bool declare_identifier(const std::string& identifier, const int type, const std::string& struct_name = "") {
         if (declared_identifiers.find(identifier) == declared_identifiers.end()) {
-            declared_identifiers[identifier] = {
-                get_current_scope()
-            };
+                declared_identifiers[identifier] = {
+                        get_current_scope(),
+                        type,
+                        struct_name
+                };
             return true;
         }
 
@@ -430,7 +436,7 @@ struct assign_expression : public expression {
     }
 
     assign_expression(char* structidentifier, char* memberidentifier, value* val)
-        : identifier(structidentifier), structmemberidentifier(memberidentifier), assignvalue(val) {
+        : identifier(structidentifier), structmemberidentifier(memberidentifier), assignvalue(val), structmember(true) {
 
     }
 
@@ -438,6 +444,7 @@ struct assign_expression : public expression {
 
     std::string identifier;
     std::string structmemberidentifier;
+    bool structmember = false;
     value* arrayindex = nullptr;
     value* assignvalue;
 
@@ -904,22 +911,20 @@ struct variable_declaration : public global_statement {
             return ret;
         }
 
-        // TODO: type
-        context.declare_identifier(decl->identifier);
+        context.declare_identifier(decl->identifier, decl->type, decl->struct_name);
         if (initialized_by) {
             if (context.get_current_scope()) {
                 ret = initialized_by->evaluate(context);
                 if (ret != evaluate_error::ok) {
                     return ret;
                 }
-
                 context.gen_instruction(pcode_fct::STO, decl->identifier);
             }
             else {
+                // TODO struct ?
                 context.global_initializers[decl->identifier] = initialized_by;
             }
         }
-
         return evaluate_error::ok;
 
     }
@@ -963,7 +968,7 @@ struct function_declaration : public global_statement {
 
         std::cout << "Declaring function: " << decl->identifier << std::endl;
 
-        context.declare_identifier(decl->identifier);
+        context.declare_identifier(decl->identifier, decl->type, decl->struct_name);
 
         if (commands) {
 
@@ -1009,18 +1014,18 @@ struct program : public ast_node {
 
     std::list<global_statement*>* statements;
 
-    void declare_builtin(evaluate_context& context, const std::string& identifier, int slot) {
-        context.declare_identifier(identifier);
+    void declare_builtin(evaluate_context& context, const std::string& identifier, int slot, int type) {
+        context.declare_identifier(identifier, type);
         context.global_identifier_cell[identifier] = BuiltinBase + slot;
     }
 
     virtual evaluate_error evaluate(evaluate_context& context) override {
 
-        declare_builtin(context, "consolePrintNum", 0);
-        declare_builtin(context, "consolePrintLnNum", 1);
-        declare_builtin(context, "consolePrintStr", 2);
-        declare_builtin(context, "consolePrintLnStr", 3);
-        declare_builtin(context, "consoleScanNum", 4);
+        declare_builtin(context, "consolePrintNum", 0, TYPE_VOID);
+        declare_builtin(context, "consolePrintLnNum", 1, TYPE_VOID);
+        declare_builtin(context, "consolePrintStr", 2, TYPE_VOID);
+        declare_builtin(context, "consolePrintLnStr", 3, TYPE_VOID);
+        declare_builtin(context, "consoleScanNum", 4, TYPE_INT);
 
         int stackrespos = context.gen_instruction(pcode_fct::INT, 0);
 

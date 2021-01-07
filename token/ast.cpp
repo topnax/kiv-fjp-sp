@@ -65,8 +65,24 @@ evaluate_error assign_expression::evaluate(evaluate_context& context) {
     if (res != evaluate_error::ok) {
         return res;
     }
+    if (context.is_identifier_declared(identifier) && context.declared_identifiers[identifier].type == TYPE_META_STRUCT) {
+        // assigning to a struct number
+        int size = 0;
 
-    if (arrayindex == nullptr) {
+        // compute the offset
+        for (auto def :*context.struct_defs[context.declared_identifiers[identifier].struct_name]){
+            // check whether member identifier matches the definition identifier
+            if (structmemberidentifier == def->identifier) {
+                break;
+            }
+
+            size += def->determine_size(context);
+        }
+        // new pcode_arg with the given identifier and summed size as offset
+        auto arg = pcode_arg(identifier);
+        arg.offset = size;
+        context.gen_instruction(pcode_fct::STO, arg);
+    } else if (arrayindex == nullptr) {
         context.gen_instruction(pcode_fct::STO, identifier);
     } else {
         // array index is not null, an array is being accessed an array
@@ -260,9 +276,41 @@ evaluate_error value::evaluate(evaluate_context& context) {
             // put the value given by the address present at the top of the stack to the top of the stack
             context.gen_instruction(pcode_fct::LDA,0,0);
             break;
-        case value_type::member:
-            // TODO
-            break;
+        case value_type::member: {
+            // check whether identifier is declared
+            if (!context.is_identifier_declared(str_base)) {
+                return evaluate_error::unresolved_reference;
+            }
+
+            // get the struct name based on the identifier
+            auto struct_name = context.declared_identifiers[str_base].struct_name;
+
+            // struct must be defined
+            if (!context.is_struct_defined(struct_name)) {
+                return  evaluate_error::unknown_typename;
+            }
+
+            // load the struct definition
+            auto struct_def = context.struct_defs[struct_name];
+
+            // TODO support nested struct members
+            // compute the offset by summing sizes of struct members till we find the required member
+            int size = 0;
+            for (auto member: *struct_def) {
+                if (member->identifier == member_spec) {
+                    break;
+                }
+                size += member->determine_size(context);
+            }
+
+            // new pcode_arg with the size as a offset
+            auto p_arg = pcode_arg(str_base);
+            p_arg.offset = size;
+
+            context.gen_instruction(pcode_fct::LOD, p_arg, 0);
+
+            return evaluate_error::ok;
+        }
         case value_type::ternary:
         {
             ret = content.ternary.boolexpr->evaluate(context);
