@@ -5,12 +5,23 @@ struct cislatyp {
 };
 
 int main() {
-
+    int xx = 11;
     struct cislatyp cisla;
+    int zz = 12;
 
     cisla.a = 10;
-    cisla.b = 15;
     cisla.c = 20;
+
+    consolePrintLnNum(cisla.a);
+    consolePrintLnNum(cisla.c);
+    cisla.b = 99;
+
+    consolePrintLnNum(cisla.a);
+    consolePrintLnNum(cisla.b);
+    consolePrintLnNum(cisla.c);
+
+    consolePrintLnNum(xx);
+    consolePrintLnNum(zz);
 
     return 0;
 }
