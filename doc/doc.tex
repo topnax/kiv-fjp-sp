@@ -165,7 +165,20 @@ K převodu proudu znaků zdrojového kódu na proud tokenů, které představuj�
 
 Jednotlivé tokeny jsou popsány regulárními výrazy, jež jsou dále implementovány pomocí deterministikých konečných automatů. Ke každému tokenu je také třeba i uchovávat lexém, který představuje terminální symbol jazyka.
 
+\newpage
+Seznam tokenů vyhledávaných během lexikální analýzy při překladu zdrojového kódu v jazyce C-{}-:
 
+\begin{itemize}
+    \item \textbf{klíčová slova} -- \texttt{STRUCT}, \texttt{WHILE}, \texttt{FOR}, \texttt{IF}, \texttt{ELSE}, \texttt{CONST}, \texttt{RETURN}, \texttt{TRUE}, \texttt{FALSE}
+
+    \item \textbf{aritmetické a logické operátory} -- \texttt{L\_OP}, \texttt{B\_OP}, \texttt{A\_OP}, \texttt{COMPARSION}, \texttt{NOT}
+    \item \textbf{závorky} -- \texttt{B\_L\_CURLY}, \texttt{B\_R\_CURLY}, \texttt{B\_L\_SQUARE}, \texttt{B\_R\_SQUARE}, \texttt{PAREN\_L}, \texttt{PAREN\_R}
+    \item \textbf{ostatní} -- \texttt{TYPE}, \texttt{IDENTIFIER}, \texttt{STR\_LITERAL}, \texttt{INT\_LITERAL}, \texttt{SEMICOLON}, \texttt{COMMA}, \texttt{DOT}, \texttt{ASSIGN}, \texttt{OTHER}
+
+
+\end{itemize}
+
+V rámci této semestrální práce byl pro implementaci lexikálního analyzátoru použit nástroj \texttt{lex}, který pro tokeny definované regulárními výrazy vygeneruje kód v programovacím jazyce C. Tento kód představuje implementaci deterministického konečného automatu.
 
 \begin{figure}[!ht]
     \centering
