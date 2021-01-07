@@ -143,6 +143,8 @@ Podobně, jako například jazyk Python, navržený jazyk C-{}- nepodporuje oper
 \end{grammar}
 
 
+
+
 \section{Návrh architektury překladače}
 
 \subsection{Výběr programovacího jazyka}
@@ -155,6 +157,15 @@ Při výběru technologií pro vytvoření překladače navrženého jazyka při
 Jako další vhodná možnost se jevil výběr použití kombinace jazyků C a C++, které spolu s použtím knihovnen \texttt{bison}\footnote{\url{https://github.com/akimd/bison}} a \texttt{flex}\footnote{\url{https://github.com/westes/flex}} poskytují pevný základ pro tvorbu překladačů, a existuje velké množství literatury či článků pokrývající tuto problmatiku.
 
 Tato kombinace byla nakonec vybrána jako náhrada za zavrhnutý jazyk Haskell.
+
+
+\subsection{Lexikální analyzátor}
+
+K převodu proudu znaků zdrojového kódu na proud tokenů, které představují logické jednotky programu, je třeba navrhnout a implementovat lexikální analyzátor. 
+
+Jednotlivé tokeny jsou popsány regulárními výrazy, jež jsou dále implementovány pomocí deterministikých konečných automatů. Ke každému tokenu je také třeba i uchovávat lexém, který představuje terminální symbol jazyka.
+
+
 
 \begin{figure}[!ht]
     \centering
