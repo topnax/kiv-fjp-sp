@@ -161,8 +161,9 @@ Podobně, jako například jazyk Python, navržený jazyk C-{}- nepodporuje oper
 
 \end{grammar}
 
-
-
+\begin{huge}
+TODO
+\end{huge}
 
 \section{Návrh architektury překladače}
 
@@ -364,6 +365,44 @@ V průběhu generování jsou generované instrukce postupně přidávány do se
 \subsubsection{Přiřazování do členů struktur a jejich čtení}
 
 Pokud mají být generovány instrukce při přístupu ke členu (nebo čtení z něj) nějaké struktury, tak se kromě vyhledání adresy začátku struktury musí i vypočítat pozice relativní k začátku struktury, kde se nachází požadovaný člen. Toto dohledávání je realizované tak, že se dle identifikátoru instance struktury vyhledá její definice. Po nalezení definice struktury, ke které přistupujeme, se iteruje po jednotlivých definicích členů struktury. Sčítáme velikosti členů, jejichž identifikátory nejsou shodné s požadovaným identifikátorem, dokud nenarazíme na požadovaný člen. Výsledná adresa relativní k začátku struktury je rovna této sumě. Při generování samotné instrukce pro zápis či čtení již specifikujeme absolutní adresu požadovaného členu.
+
+
+\subsubsection{Dynamické indexování pole}
+
+Dynamické indexování pole znamená, že index používáný pro přístup do pole není znám při překladu. Bez instrukcí \texttt{LDA} a \texttt{STA}, které načítají adresu, ke které mají přistoupit, ze zásobníku, není možné dynamické indexování realizovat. Tyto instrukce se však nenacházejí v základní instrukční sadě, a tak je třeba použít interpret PL/0, který podporuje.
+
+Samotné generování instrukcí při indexování pole probíhá tak, že se před vložením instrukcí \texttt{STA} a \texttt{LDA}  k adrese začátku pole připočte hodnota výrazu představující index do pole. V momentě volání instrukcí \texttt{STA} a \texttt{LDA} se již v zásobníku nachází adresa ukazující na požadovaný prvek v poli daný indexem.
+
+\subsubsection{Rozšíření interpretu \texttt{pmachine.cpp}}
+
+Námi použitý interpret \texttt{pmachine.cpp} nepodporuje instrukce z rožšířené instrukční sady PL/0. Pro implementaci dynamického indexování pole bylo třeba použitý interpret o tyto dvě instrukce rozšířit. Rozšíření bylo implementované přesně podle specifikace instrukcí \texttt{STA} a \texttt{LDA}.
+
+
+\begin{lstlisting}[caption={Rozšíření interpretu \texttt{pmachine.cpp} o instrukce \texttt{LDA} a \texttt{STA}}, captionpos=b]
+case pcode_fct::LDA: {
+    auto addr = s[t];       // load address from stack
+    t--;
+    auto ba = base(s[t]);  // load base from stack
+
+    s[t] = s[b + addr];     // load the value using the address and base and push it to the stack
+
+    break;
+}
+
+case pcode_fct::STA : {
+    auto addr = s[t];       // load address from stack
+    t--;
+    auto b = base(s[t]);    // load base from stack
+    t--;
+    auto value = s[t];      // load value form stack
+    t--;
+
+    s[b + addr] = value;    // store the value to the loaded address
+
+    break;
+}
+\end{lstlisting}
+
 
 \section{Závěr}	
 
