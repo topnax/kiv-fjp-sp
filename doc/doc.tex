@@ -361,6 +361,10 @@ struct pcode\_instruction {
 \end{lstlisting}
 V průběhu generování jsou generované instrukce postupně přidávány do seznamu \texttt{evaluate\_context::generated\_instructions}. \begin{huge}TODO resolving reference to the actual address \end{huge}
 
+\subsubsection{Přiřazování do členů struktur a jejich čtení}
+
+Pokud mají být generovány instrukce při přístupu ke členu (nebo čtení z něj) nějaké struktury, tak se kromě vyhledání adresy začátku struktury musí i vypočítat pozice relativní k začátku struktury, kde se nachází požadovaný člen. Toto dohledávání je realizované tak, že se dle identifikátoru instance struktury vyhledá její definice. Po nalezení definice struktury, ke které přistupujeme, se iteruje po jednotlivých definicích členů struktury. Sčítáme velikosti členů, jejichž identifikátory nejsou shodné s požadovaným identifikátorem, dokud nenarazíme na požadovaný člen. Výsledná adresa relativní k začátku struktury je rovna této sumě. Při generování samotné instrukce pro zápis či čtení již specifikujeme absolutní adresu požadovaného členu.
+
 \section{Závěr}	
 
 % TODO
