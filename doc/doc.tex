@@ -314,7 +314,8 @@ Během kompilace je pomocí nástroje \texttt{bison} vygenerován zdrojový kód
 
 \subsection{Vytváření abstrakního syntaktického stromu}
 Při zpracování nalezených tokenů jsou vytvářeny jednotlivé prvky abstraktního syntaktického stromu. Tyto prvky jsou v kódu reprezantovány strukturou rozšiřující obecnou \texttt{ast\_node}, která definuje abstraktní funkci \texttt{evaluate} přijímající kontext vyhodnocení:
-\begin{lstlisting}
+
+\begin{lstlisting}[caption={Struktura \texttt{ast\_node}}, captionpos=b]
 struct ast_node {
     virtual ~ast_node() {
     };
@@ -350,9 +351,15 @@ Každý konkrétní člen syntaktického stromu představován konkrétní struk
 
 
 \subsection{Generování PL/0}
-Generování instrukcí PL/0 probíhá při vyhodnocování listů abstraktního syntaktického stromu.
+Generování instrukcí PL/0 probíhá většinou při vyhodnocování listů abstraktního syntaktického stromu, kdy se používají informace o aktuálním stavu překladu (např. tabulka symbolů, kontext). 
 
-
+\begin{lstlisting}[caption={Struktura \texttt{ast\_node}}, captionpos=b]
+struct pcode\_instruction {
+    pcode_fct instruction;      // instruction name
+    int lvl;                    // memory level
+    pcode_arg arg;              // instruction argument
+\end{lstlisting}
+V průběhu generování jsou generované instrukce postupně přidávány do seznamu \texttt{evaluate\_context::generated\_instructions}. \begin{huge}TODO resolving reference to the actual address \end{huge}
 
 \section{Závěr}	
 
