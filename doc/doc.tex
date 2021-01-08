@@ -226,6 +226,21 @@ declaration:
     }
 \end{lstlisting}
 
+
+\subsection{Abstraktní syntaktický strom}
+
+Aby bylo možné generovat kód či instrukce překládaného zdrojového kódu do cílové platformy, je třeba sestavit abstraktní syntaktický strom. Po úspěšném sestavení probíhá jeho vyhodnocení, při kterém je generován kód či instrukce cílové platformy.
+
+\begin{figure}[!ht]
+    \centering
+    {\includegraphics[width=\textwidth]{pdf/syntanalysis2.pdf}}
+    \caption{Abstraktní syntaktický strom}
+    \label{fig:screen-transition-diagram}
+\end{figure}
+
+Generování abstraktního syntaktického stromu probíhá během zpracovávání tokenů během syntaktické analýzy. 
+
+
 \begin{figure}[!ht]
     \centering
     {\includegraphics[width=\textwidth]{pdf/architecture.pdf}}
