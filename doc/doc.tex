@@ -271,13 +271,26 @@ ret 0,0    navrat z procedury (return)
 \end{lstlisting}  
 
 
-
 \begin{figure}[!ht]
     \centering
     {\includegraphics[width=\textwidth]{pdf/architecture.pdf}}
-    \caption{Architektura překladače}
+    \caption{Výsledná architektura navrženého překladače}
     \label{fig:screen-transition-diagram}
 \end{figure}
+
+
+\section{Implementace navržené architektury překladače}
+
+Navržená architektura překladače byla implementovaná jako jeden program napsaný v jazyce C++ s využitím nástrojů \texttt{flex} a \texttt{bison}, ktere generují část programu.
+
+
+\subsection{Sestavení programu a jeho závilosti}
+K sestavování vytvořeného programu jsou používány nástroje \texttt{CMake} a \texttt{make}, kdy v souboru \texttt{CMakeLists.txt} je definován postup přeložení souborů obsahující zdrojové kódy programu a závislosti na nástroje \texttt{flex} a \texttt{bison}.
+
+Postup k sestavení podporuje kompilaci na platformách Linux a Windows, a tak je vytvořený program částečně multiplatformní.
+
+
+
 
 \section{Závěr}	
 
