@@ -26,21 +26,40 @@
 \definecolor{pred}{rgb}{0.9,0,0}
 \definecolor{pgrey}{rgb}{0.46,0.45,0.48}
 
-\lstset{frame=tb,
-  language=C,
-  aboveskip=3mm,
-  belowskip=3mm,
-  showstringspaces=false,
-  columns=flexible,
-  basicstyle={\small\ttfamily},
-  numbers=none,
-  numberstyle=\tiny\color{gray},
-  keywordstyle=\color{blue},
-  commentstyle=\color{pgreen},
-  stringstyle=\color{mauve},
-  breaklines=true,
-  breakatwhitespace=true,
-  tabsize=3
+
+\lstdefinestyle{flex}{
+    frame=tb,
+    aboveskip=3mm,
+    belowskip=3mm,
+    showstringspaces=false,
+    columns=flexible,
+    basicstyle={\small\ttfamily},
+    numbers=none,
+    numberstyle=\tiny\color{black},
+    keywordstyle=\color{black},
+    commentstyle=\color{black},
+    stringstyle=\color{black},
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=3
+}
+
+\lstset{
+    frame=tb,
+    language=C,
+    aboveskip=3mm,
+    belowskip=3mm,
+    showstringspaces=false,
+    columns=flexible,
+    basicstyle={\small\ttfamily},
+    numbers=none,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{blue},
+    commentstyle=\color{pgreen},
+    stringstyle=\color{mauve},
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=3
 }
 
 
@@ -149,7 +168,7 @@ Podobně, jako například jazyk Python, navržený jazyk C-{}- nepodporuje oper
 
 \subsection{Výběr programovacího jazyka}
 \subsubsection{Haskell}
-Při výběru technologií pro vytvoření překladače navrženého jazyka připadal nejdřív v úvahu jazyk Haskell, který je pro tvorbu překladačů často používán hlavně kvůli tomu, že se jedná o funkcionální jazyk, a definice různých přepisovacích pravidel či zpracování vstupního textu je tak velmi jednoduchá a přirozená. Další velkou výhodou je existence knihovny \texttt{Parsec}\footnote{\url{https://hackage.haskell.org/package/parsec#description}} vytvořené pro tento jazyk, která je velmi kvalitní a vhodná pro lexikální analýzu.
+Při výběru technologií pro vytvoření překladače navrženého jazyka připadal nejdřív v úvahu jazyk Haskell, který je pro tvorbu překladačů často používán hlavně kvůli tomu, že se jedná o funkcionální jazyk, a definice různých přepisovacích pravidel či zpracování vstupního textu je tak velmi jednoduchá a přirozená. Další velkou výhodou je existence knihovny \texttt{Parsec}\footnote{\url{https://hackage.haskell.org/package/parsec}} vytvořené pro tento jazyk, která je velmi kvalitní a vhodná pro lexikální analýzu.
 
  Avšak z důvodu velké odlišnosti Haskellu od běžně používaných programovacích jazyků, kdy Haskell používá spoustu fundamentálně odlišných konstrukcí pro zápis programů, bylo nakonec od možnosti využít tento programovací jazyk odstopueno.
  
@@ -179,6 +198,17 @@ Seznam tokenů vyhledávaných během lexikální analýzy při překladu zdrojo
 \end{itemize}
 
 V rámci této semestrální práce byl pro implementaci lexikálního analyzátoru použit nástroj \texttt{lex}, který pro tokeny definované regulárními výrazy vygeneruje kód v programovacím jazyce C. Tento kód představuje implementaci deterministického konečného automatu.
+
+\begin{lstlisting}[caption={Ukázka regulárních výrazů pro skenování tokenů}, captionpos=b, style=flex]
+type            (int|string|char|bool)
+identifier      ([a-z][a-zA-Z0-9]*)
+int_literal     ([0-9])+
+str_literal     \"(\\.|[^"\\])*\"
+l_op            (\|\||\&\&)
+b_op            (\||\&|\~)
+a_op            (\+|\*|\/|\-)
+comparsion      (>|<|==|>=|<=|!=)
+\end{lstlisting}
 
 \begin{figure}[!ht]
     \centering
