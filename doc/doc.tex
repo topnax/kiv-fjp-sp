@@ -284,7 +284,7 @@ ret 0,0    navrat z procedury (return)
 Navržená architektura překladače byla implementovaná jako jeden program napsaný v jazyce C++ s využitím nástrojů \texttt{flex} a \texttt{bison}, ktere generují část programu.
 
 
-\subsection{Sestavení programu a jeho závilosti}
+\subsection{Sestavení programu a jeho závislosti}
 K sestavování vytvořeného programu jsou používány nástroje \texttt{CMake} a \texttt{make}, kdy v souboru \texttt{CMakeLists.txt} je definován postup přeložení souborů obsahující zdrojové kódy programu a závislosti na nástroje \texttt{flex} a \texttt{bison}.
 
 Postup k sestavení podporuje kompilaci na platformách Linux a Windows, a tak je vytvořený program částečně multiplatformní.
@@ -293,14 +293,23 @@ Zdrojové kódy vygenerované nástroji \texttt{flex} a \texttt{bison} jsou umis
 
 Úspešná kompilace končí vytvořením spustitelného programu \texttt{CMM}.
 
+
 \subsection{Zpracování vstupního textu}
 
 Předloha pro vygenerování DKA k zpracování vstupního textu a skenování tokenů se nachází v souboru \texttt{./token.l}. Při kompilaci je tento soubor přeložen pomocí nástroje \texttt{flex} a výsledný zdrojový kód DKA je vygenerován do souboru \texttt{.generated/token.c}.
 
-Jednotlivé skenované tokeny, kterých je celkem 29, jsou definovány v souboru \texttt{grammar.y}.
+Jednotlivé skenované tokeny, kterých je celkem 29, jsou definovány v souboru \texttt{./grammar.y}.
 
 V moment rozpoznání nějakého tokenu je tento token ihned předáván další části překladače, a to konkrétně části, která má na starost syntaktickou analýzu.
 
+
+\subsection{Zpracování nalezených tokenů}
+
+Předloha pro vygenerování logiky pro zpracování nalezených tokenů se nachází v souboru \texttt{./grammar.y}. V tomto souboru se kromě seznamu skenovaných tokenů během lexikální analýzy nachází také přepsaná gramatika navrženého jazyka C-{}- v požadovaném formátu nástroje \texttt{bison}.
+
+Během syntaktické analýzy, kdy jsou příchozí tokeny úspěšně zpracovávány podle pravidel gramatiky, jsou tyto tokeny seskupovány a dále předávány logice pro generování abstraktního syntaktického stromu.
+
+Během kompilace je pomocí nástroje \texttt{bison} vygenerován zdrojový kód do souborů začínající názvem \texttt{grammar} ve složce \texttt{./generated}.
 
 
 \section{Závěr}	
