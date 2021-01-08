@@ -222,7 +222,7 @@ Pro implementaci syntaktického analyzátoru v této semestrální práci jsme z
 declaration:
     TYPE IDENTIFIER {
         printf("variable declaration: type=%d identifier=%s\n", $1, $2);
-        $$ = new declaration($1, $2);
+        \$\$ = new declaration($1, $2);
     }
 \end{lstlisting}
 
@@ -239,6 +239,37 @@ Aby bylo možné generovat kód či instrukce překládaného zdrojového kódu 
 \end{figure}
 
 Generování abstraktního syntaktického stromu probíhá během zpracovávání tokenů během syntaktické analýzy. 
+
+\subsection{Cílová platforma}
+Při vyhodnocování vygenerovaného abstraktního syntaktického stromu probíhá generování instrukcí architektury PL/0.
+
+PL/0 je jednoduchá architektura vytvořená pro vždělávací učely a procvičení konstrukcí z oblasti vytváření překladačů. Tato architektura je navržena tak, že podporuje následující instrukce:
+
+\begin{lstlisting}[caption={Ukázka regulárních výrazů pro skenování tokenů}, captionpos=b, style=flex]
+lit 0,A    uloz konstantu A do zasobniku
+opr 0,A    proved instrukci A
+1    unarni minus
+2    +
+3    -
+4    *
+5    div - celociselne deleni (znak /)
+6    mod - deleni modulo (znak %)
+7    odd - test, zda je cislo liche
+8    test rovnosti (znak =)
+9    test nerovnosti (znaky <>)
+10    <
+11    >=
+12    >
+13    <=
+lod L,A    uloz hodnotu promenne z adr. L,A na vrchol zasobniku
+sto L,A    zapis do promenne z adr. L,A hodnotu z vrcholu zasobniku
+cal L,A    volej proceduru A z urovne L
+int 0,A    zvys obsah top-registru zasobniku o hodnotu A
+jmp 0,A    proved skok na adresu A
+jmc 0,A    proved skok na adresu A, je-li hodnota na vrcholu zasobniku 0
+ret 0,0    navrat z procedury (return)
+\end{lstlisting}  
+
 
 
 \begin{figure}[!ht]
