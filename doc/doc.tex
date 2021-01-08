@@ -293,6 +293,14 @@ Zdrojové kódy vygenerované nástroji \texttt{flex} a \texttt{bison} jsou umis
 
 Úspešná kompilace končí vytvořením spustitelného programu \texttt{CMM}.
 
+\subsection{Zpracování vstupního textu}
+
+Předloha pro vygenerování DKA k zpracování vstupního textu a skenování tokenů se nachází v souboru \texttt{./token.l}. Při kompilaci je tento soubor přeložen pomocí nástroje \texttt{flex} a výsledný zdrojový kód DKA je vygenerován do souboru \texttt{.generated/token.c}.
+
+Jednotlivé skenované tokeny, kterých je celkem 29, jsou definovány v souboru \texttt{grammar.y}.
+
+V moment rozpoznání nějakého tokenu je tento token ihned předáván další části překladače, a to konkrétně části, která má na starost syntaktickou analýzu.
+
 
 
 \section{Závěr}	
