@@ -213,6 +213,19 @@ comparsion      (>|<|==|>=|<=|!=)
 \subsection{Syntaktická analýza}
 
 Během syntaktické analýzy se typicky zpracovává vstupní text, který se nejčastěji transformuje na syntaktický strom, abstraktní derivační strom nebo jiné definované struktury. Pro zjednodušení této transformace se místo prostého vstupního textu zpracovává proud tokenů generován lexikální analýzou.
+
+Smyslem syntaktické analýzy je zkoumat posloupnost tokenů a vyhodnotit, zdali vstupní text patří do daného programovacího jazyka definovaného gramatikou.
+
+Pro implementaci syntaktického analyzátoru v této semestrální práci jsme zvolili nástroj \texttt{bison}, který umožňuje definovat gramatiku v Backus–Naurově formě.
+
+\begin{lstlisting}[caption={Ukázka pravidla v \texttt{bison} syntaxi pro deklaraci proměnné}, captionpos=b, style=flex]
+declaration:
+    TYPE IDENTIFIER {
+        printf("variable declaration: type=%d identifier=%s\n", $1, $2);
+        $$ = new declaration($1, $2);
+    }
+\end{lstlisting}
+
 \begin{figure}[!ht]
     \centering
     {\includegraphics[width=\textwidth]{pdf/architecture.pdf}}
