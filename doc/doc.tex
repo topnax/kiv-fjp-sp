@@ -312,6 +312,48 @@ Během syntaktické analýzy, kdy jsou příchozí tokeny úspěšně zpracováv
 Během kompilace je pomocí nástroje \texttt{bison} vygenerován zdrojový kód do souborů začínající názvem \texttt{grammar} ve složce \texttt{./generated}.
 
 
+\subsection{Vytváření abstrakního syntaktického stromu}
+Při zpracování nalezených tokenů jsou vytvářeny jednotlivé prvky abstraktního syntaktického stromu. Tyto prvky jsou v kódu reprezantovány strukturou rozšiřující obecnou \texttt{ast\_node}, která definuje abstraktní funkci \texttt{evaluate} přijímající kontext vyhodnocení:
+\begin{lstlisting}
+struct ast_node {
+    virtual ~ast_node() {
+    };
+
+    // evaluate node - for example to generate PL/0
+    virtual evaluate_error evaluate(evaluate_context& context) = 0;
+};
+\end{lstlisting}
+
+Každý konkrétní člen syntaktického stromu představován konkrétní strukturou dle jeho typu:
+
+\begin{itemize}
+    \item \texttt{arithmetic} -- aritmetický výraz
+    \item \texttt{assign\_expression} -- přiřazení do proměnné
+    \item \texttt{block} -- \begin{huge} TODO \end{huge}
+    \item \texttt{boolean\_expression} -- booleanský výraz
+    \item \texttt{command} -- struktura oblaující nějaký příkaz (např. deklaraci proměnné, výraz, definici podmínky či cyklu)
+    \item \texttt{condition} -- obaluje výraz v podmínce a příkazy, které se mají provést pokud vyhodnocení podmínky bude úspěšné
+    \item \texttt{declaration} -- obalující identifikátor a datový typ
+    \item \texttt{expression} -- jakýkoliv výraz
+    \item \texttt{for\_loop} -- obalující komponenty iteračního cyklu
+    \item \texttt{function\_call} -- volání funkce
+    \item \texttt{function\_declaration} -- deklarace funkce
+    \item \texttt{global\_statement} -- \begin{huge} TODO \end{huge}
+    \item \texttt{loop} -- obaluje příkazy volané uvnitř jedné iterace cyklu
+    \item \texttt{program} -- kořen abstraktního syntaktického stromu, který představuje celý program
+    \item \texttt{struct\_definition} -- definice struktury (obaluje jednotlivé členy této struktury)
+    \item \texttt{value} -- hodnota, která bude například přiřazena nějaké proměnné
+    \item \texttt{variable\_declaration} -- deklarace nové proměnné
+    \item \texttt{variable\_ref} -- reference na již existující proměnnou
+    \item \texttt{while\_loop} -- obalující komponenty iteračního cyklu
+\end{itemize}
+
+
+\subsection{Generování PL/0}
+Generování instrukcí PL/0 probíhá při vyhodnocování listů abstraktního syntaktického stromu.
+
+
+
 \section{Závěr}	
 
 % TODO
