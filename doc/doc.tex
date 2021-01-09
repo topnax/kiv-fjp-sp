@@ -234,6 +234,14 @@ Psaní programů v jazyce C-{}- je velmi podobné psaní programům v jazyce C. 
 
 Žádné speciální konstrukce nad rámec klasického C nebyly implementovány.
 
+Návrh jazyka počítá s podporou následujících datových typů:
+
+\begin{itemize}
+    \item \texttt{int} - celočíselný datový typ 
+    \item \texttt{string} - typ představující textový řetězec
+    \item \texttt{bool} - booleanský datový typ 
+    \item \texttt{struct} - vlastní složený datový typ (nelze složené typy do sebe vnořovat)
+\end{itemize}
 
 \section{Návrh architektury překladače}
 
@@ -421,7 +429,9 @@ Každý člen syntaktického stromu je představován konkrétní strukturou dle
     \item \texttt{while\_loop} -- obalující komponenty iteračního cyklu
 \end{itemize}
 
-Následné vyhodnocení vygenerovaného stromu začíná tak, že se nad kořenem stromu zavolá funkce \texttt{evaluate}, která začne rekurzivně vyhodnocovat strom včetně jeho potomků. Během generování stromu je postupně vytvářena i tabulka symbolů, která je později využívána k překladu identifikátorů na adresy do paměti.
+Následné vyhodnocení vygenerovaného stromu začíná tak, že se nad kořenem stromu zavolá funkce \texttt{evaluate}, která začne rekurzivně vyhodnocovat strom včetně jeho potomků. 
+
+Během generování stromu je postupně vytvářena i tabulka symbolů, která je později využívána k překladu identifikátorů na adresy do paměti.
 
 \subsection{Generování PL/0}
 Generování instrukcí PL/0 probíhá většinou při vyhodnocování listů abstraktního syntaktického stromu, kdy se používají informace o aktuálním stavu překladu (např. tabulka symbolů, kontext). 
@@ -479,7 +489,7 @@ case pcode_fct::STA : {
 \subsection{Vstup a výpis do konzole}
 Aby bylo možné implementovat vstup a výpis do konzole, je třeba využít vestavěných funkcí interpretu. Ve zdrojovém kódu interpretu \texttt{pmachine.cpp} lze sledovat, že při zpracování instrukce \texttt{CAL} se kontroluje, zdali adresa není z oblasti definované konstantou \texttt{BuiltinBase}. Pokud ano, tak se má zavolat vestavěná funkce pro vstup či výstup do konzole.
 
-\begin{lstlisting}[caption={Zpracování instrukce CAL v interpretu \texttt{pmachine.cpp}}, captionpos=b]
+\begin{lstlisting}[caption={Zpracování instrukce \texttt{CAL} v interpretu \texttt{pmachine.cpp}}, captionpos=b]
 if (i.a < BuiltinBase) {
     // standard CAL instruction handler
 }
@@ -502,6 +512,15 @@ else {
 
 Před vyhodnocováním abstraktního syntaktického stromu se implicitně definují funkce \texttt{consolePrintNum}, \texttt{consolePrintLnNum}, \texttt{consolePrintStr}, \texttt{consolePrintLnStr} a \texttt{consoleScanNum}. Při jejich volání, se generují instrukce \texttt{CAL} s příslušnou adresou z báze \texttt{BuiltinBase}.
 
+\subsection{Podporované datové typy}
+Mezi podporované datové typy patří:
+
+\begin{itemize}
+    \item \texttt{int} -- celočíselný datový typ (podpora aritmetických operací)
+    \item \texttt{string} -- textový řetězec (pouze jako literál, nelze spojovat) 
+    \item \texttt{bool} -- booleanský typ (podpora logických operací)
+    \item \texttt{struct} -- složený datový typ (nelze vytvářet vnořené struktury) 
+\end{itemize}
 
 \subsection{Implementovaná rozšíření}
 V rámci této semestrální práce byla implementována následující volitelná rozšíření dle zadání:
