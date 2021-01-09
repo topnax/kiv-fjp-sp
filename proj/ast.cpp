@@ -273,7 +273,7 @@ evaluate_error boolean_expression::evaluate(evaluate_context& context) {
         // just one bool expression is present - this means we either evaluate assertion or negation of it
         else {
 
-            // negation - "!" token present before
+            // negation - "!" proj present before
             if (op == operation::negate) {
 
                 // evaluate it, result is on stack (0 or 1)

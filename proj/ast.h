@@ -613,7 +613,7 @@ struct function_call : public ast_node {
     virtual evaluate_error evaluate(evaluate_context& context) override;
 };
 
-// wrapper for variable reference in value token
+// wrapper for variable reference in value proj
 struct variable_ref : public ast_node {
     variable_ref(const char* varidentifier) : identifier(varidentifier) {
         //
