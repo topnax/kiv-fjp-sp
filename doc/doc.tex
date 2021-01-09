@@ -118,8 +118,7 @@
     
 \section{Zadání}
 
-    Cílem práce je vytvořit překladač zvoleného jazyka, kdy je možné se inspirovat jazykem PL/0, vybrat si podmožninu nnějakého existujícího jazyka nebo si navrhnout jazyk zcela vlastní. Cílová architektura je volitelná, avšak nesmí být použit zcela vlastní interpret.
-
+    Cílem práce je vytvořit překladač zvoleného jazyka, kdy je možné se inspirovat jazykem PL/0, vybrat si podmožninu nějakého existujícího jazyka nebo si navrhnout jazyk zcela vlastní. 
 
 \section{Návrh vlastního jazyka}
 
@@ -239,7 +238,7 @@ Při výběru technologií pro vytvoření překladače navrženého jazyka při
  Avšak z důvodu velké odlišnosti Haskellu od běžně používaných programovacích jazyků, kdy Haskell používá spoustu fundamentálně odlišných konstrukcí pro zápis programů, bylo nakonec od možnosti využít tento programovací jazyk odstopueno.
  
 \subsubsection{C a C++}
-Jako další vhodná možnost se jevil výběr použití kombinace jazyků C a C++, které spolu s použitím knihovnen \texttt{bison}\footnote{\url{https://github.com/akimd/bison}} a \texttt{flex}\footnote{\url{https://github.com/westes/flex}} poskytují pevný základ pro tvorbu překladačů, a existuje velké množství literatury či článků pokrývající tuto problmatiku.
+Jako další vhodná možnost se jevil výběr použití kombinace jazyků C a C++, které spolu s použitím knihovnen \texttt{bison}\footnote{\url{https://github.com/akimd/bison}} a \texttt{flex}\footnote{\url{https://github.com/westes/flex}} poskytují pevný základ pro tvorbu překladačů, a existuje velké množství literatury či článků pokrývající tuto problematiku.
 
 Tato kombinace byla nakonec vybrána jako náhrada za zavrhnutý jazyk Haskell.
 
@@ -251,7 +250,7 @@ K převodu proudu znaků zdrojového kódu na proud tokenů, které představuj�
 Jednotlivé tokeny jsou popsány regulárními výrazy, jež jsou dále implementovány pomocí deterministikých konečných automatů. Ke každému tokenu je také třeba i uchovávat lexém, který představuje terminální symbol jazyka.
 
 \newpage
-Seznam tokenů vyhledávaných během lexikální analýzy při překladu zdrojového kódu v jazyce C-{}-:
+Seznam tokenů vyhledávaných během lexikální analýzy při překladu zdrojového kódu v jazyce C-{}- je následující:
 
 \begin{itemize}
     \item \textbf{klíčová slova} -- \texttt{STRUCT}, \texttt{WHILE}, \texttt{FOR}, \texttt{IF}, \texttt{ELSE}, \texttt{CONST}, \texttt{RETURN}, \texttt{TRUE}, \texttt{FALSE}
@@ -272,8 +271,9 @@ int_literal     ([0-9])+
 str_literal     \"(\\.|[^"\\])*\"
 l_op            (\|\||\&\&)
 b_op            (\||\&|\~)
-a_op_pm     (\+|\-)
-a_op_td     (\*|\/)comparsion      (>|<|==|>=|<=|!=)
+a_op_pm         (\+|\-)
+a_op_td         (\*|\/)
+comparsion      (>|<|==|>=|<=|!=)
 \end{lstlisting}
 
 \subsection{Syntaktická analýza}
@@ -332,7 +332,7 @@ sto L,A    zapis do promenne z adr. L,A hodnotu z vrcholu zasobniku
 cal L,A    volej proceduru A z urovne L
 int 0,A    zvys obsah top-registru zasobniku o hodnotu A
 jmp 0,A    proved skok na adresu A
-jmc 0,A    proved skok na adresu A, je-li hodnota na vrcholu zasobniku 0
+jmc 0,A    proved skok na adresu A, je-li na vrcholu zasobniku 0
 ret 0,0    navrat z procedury (return)
 \end{lstlisting}  
 
@@ -350,19 +350,19 @@ ret 0,0    navrat z procedury (return)
 Navržená architektura překladače byla implementovaná jako jeden program napsaný v jazyce C++ s využitím nástrojů \texttt{flex} a \texttt{bison}, ktere generují část programu.
 
 
-\subsection{Sestavení programu a jeho závislosti}
+\subsection{Sestavení překladače a jeho závislosti}
 K sestavování vytvořeného programu jsou používány nástroje \texttt{CMake} a \texttt{make}, kdy v souboru \texttt{CMakeLists.txt} je definován postup přeložení souborů obsahující zdrojové kódy programu a závislosti na nástroje \texttt{flex} a \texttt{bison}.
 
 Postup k sestavení podporuje kompilaci na platformách Linux a Windows, a tak je vytvořený program částečně multiplatformní.
 
 Zdrojové kódy vygenerované nástroji \texttt{flex} a \texttt{bison} jsou umisťovány do složky \texttt{./generated}, aby byly jednoznačně odděleny od ručně psaných zdrojových kódů programu.
 
-Úspešná kompilace končí vytvořením spustitelného programu \texttt{CMM}.
+Úspešná kompilace končí vytvořením spustitelného programu \texttt{CMM}, který slouží k překladu programů psaných v jazyce C-{}-.
 
 
 \subsection{Zpracování vstupního textu}
 
-Předloha pro vygenerování DKA k zpracování vstupního textu a skenování tokenů se nachází v souboru \texttt{./token.l}. Při kompilaci je tento soubor přeložen pomocí nástroje \texttt{flex} a výsledný zdrojový kód DKA je vygenerován do souboru \texttt{.generated/token.c}.
+Předloha pro vygenerování DKA k zpracování vstupního textu a skenování tokenů se nachází v souboru \texttt{./token.l}. Při kompilaci je tento soubor přeložen pomocí nástroje \texttt{flex} a výsledný zdrojový kód DKA je vygenerován do souboru \texttt{./generated/token.c}.
 
 Jednotlivé skenované tokeny, kterých je celkem 29, jsou definovány v souboru \texttt{./grammar.y}.
 
@@ -375,11 +375,11 @@ Předloha pro vygenerování logiky pro zpracování nalezených tokenů se nach
 
 Během syntaktické analýzy, kdy jsou příchozí tokeny úspěšně zpracovávány podle pravidel gramatiky, jsou tyto tokeny seskupovány a dále předávány logice pro generování abstraktního syntaktického stromu.
 
-Během kompilace je pomocí nástroje \texttt{bison} vygenerován zdrojový kód do souborů začínající názvem \texttt{grammar} ve složce \texttt{./generated}.
+Během kompilace překladače je pomocí nástroje \texttt{bison} vygenerován zdrojový kód do souborů začínající názvem \texttt{grammar} ve složce \texttt{./generated}.
 
 
 \subsection{Vytváření abstrakního syntaktického stromu}
-Při zpracování nalezených tokenů jsou vytvářeny jednotlivé prvky abstraktního syntaktického stromu. Tyto prvky jsou v kódu reprezantovány strukturou rozšiřující obecnou \texttt{ast\_node}, která definuje abstraktní funkci \texttt{evaluate} přijímající kontext vyhodnocení:
+Při zpracování nalezených tokenů jsou vytvářeny jednotlivé prvky abstraktního syntaktického stromu. Tyto prvky jsou v kódu reprezantovány strukturou rozšiřující obecnou strukturu \texttt{ast\_node}, která definuje abstraktní funkci \texttt{evaluate} přijímající kontext vyhodnocení:
 
 \begin{lstlisting}[caption={Struktura \texttt{ast\_node}}, captionpos=b]
 struct ast_node {
@@ -391,7 +391,7 @@ struct ast_node {
 };
 \end{lstlisting}
 
-Každý konkrétní člen syntaktického stromu představován konkrétní strukturou dle jeho typu:
+Každý člen syntaktického stromu je představován konkrétní strukturou dle jeho typu:
 
 \begin{itemize}
     \item \texttt{arithmetic} -- aritmetický výraz
@@ -415,17 +415,18 @@ Každý konkrétní člen syntaktického stromu představován konkrétní struk
     \item \texttt{while\_loop} -- obalující komponenty iteračního cyklu
 \end{itemize}
 
+Následné vyhodnocení vygenerovaného stromu začíná tak, že se nad kořenem stromu zavolá funkce \texttt{evaluate}, která začne rekurzivně vyhodnocovat strom včetně jeho potomků. Během generování stromu je postupně vytvářena i tabulka symbolů, která je později využívána k překladu identifikátorů na adresy do paměti.
 
 \subsection{Generování PL/0}
 Generování instrukcí PL/0 probíhá většinou při vyhodnocování listů abstraktního syntaktického stromu, kdy se používají informace o aktuálním stavu překladu (např. tabulka symbolů, kontext). 
 
-\begin{lstlisting}[caption={Struktura \texttt{ast\_node}}, captionpos=b]
-struct pcode\_instruction {
+\begin{lstlisting}[caption={Struktura \texttt{pcode\_instruction} představující instrukci PL/0}, captionpos=b]
+struct pcode_instruction {
     pcode_fct instruction;      // instruction name
     int lvl;                    // memory level
     pcode_arg arg;              // instruction argument
 \end{lstlisting}
-V průběhu generování jsou generované instrukce postupně přidávány do seznamu \texttt{evaluate\_context::generated\_instructions}. \begin{huge}TODO resolving reference to the actual address \end{huge}
+V průběhu generování jsou generované instrukce postupně přidávány do seznamu \texttt{evaluate\_context::generated\_instructions}.
 
 \subsubsection{Přiřazování do členů struktur a jejich čtení}
 
@@ -440,7 +441,7 @@ Samotné generování instrukcí při indexování pole probíhá tak, že se p�
 
 \subsubsection{Rozšíření interpretu \texttt{pmachine.cpp}}
 
-Námi použitý interpret \texttt{pmachine.cpp} nepodporuje instrukce z rožšířené instrukční sady PL/0. Pro implementaci dynamického indexování pole bylo třeba použitý interpret o tyto dvě instrukce rozšířit. Rozšíření bylo implementované přesně podle specifikace instrukcí \texttt{STA} a \texttt{LDA}.
+Námi použitý interpret \texttt{pmachine.cpp}\footnote{\url{https://gist.github.com/gotoc/8084fd6b22892ce068f2}} nepodporuje instrukce z rožšířené instrukční sady PL/0. Pro implementaci dynamického indexování pole bylo třeba použitý interpret o tyto dvě instrukce rozšířit. Rozšíření bylo implementované přesně podle specifikace instrukcí \texttt{STA} a \texttt{LDA}.
 
 
 \begin{lstlisting}[caption={Rozšíření interpretu \texttt{pmachine.cpp} o instrukce \texttt{LDA} a \texttt{STA}}, captionpos=b]
@@ -470,7 +471,7 @@ case pcode_fct::STA : {
 
 
 \subsection{Vstup a výpis do konzole}
-Aby bylo možné implementovat vstup a výpis do konzole, je třeba využít vestavěných funkcí interpretu. Ve zdrojového kódu interpretu \texttt{pmachine.cpp} lze sledovat, že při zpracování instrukce \texttt{CAL} se kontroluje, zdali adresa není z oblasti definované konstantou \texttt{BuiltinBase}. Pokud ano, tak se má zavolat vestavěná funkce pro vstup či výstup do konzole.
+Aby bylo možné implementovat vstup a výpis do konzole, je třeba využít vestavěných funkcí interpretu. Ve zdrojovém kódu interpretu \texttt{pmachine.cpp} lze sledovat, že při zpracování instrukce \texttt{CAL} se kontroluje, zdali adresa není z oblasti definované konstantou \texttt{BuiltinBase}. Pokud ano, tak se má zavolat vestavěná funkce pro vstup či výstup do konzole.
 
 \begin{lstlisting}[caption={Zpracování instrukce CAL v interpretu \texttt{pmachine.cpp}}, captionpos=b]
 if (i.a < BuiltinBase) {
@@ -510,12 +511,11 @@ V rámci této semestrální práce byla implementována následující voliteln
     \item pole a práce s jeho prvky (\textbf{včetně dynamického indexování})
     \item parametry předávané hodnotou
     \item návratová hodnota podprogramu
+    \item typová kontrola
 \end{itemize}
 
-\begin{huge} \texttt{const} \end{huge}
-
 \section{Závěr}	
-V rámci této týmové semestrální práce byl navržen jazyk C-{}-, a následně vytvořen překladač pro tento jazyk. Během překladu jsou generovány instrukce cílové platformy PL/O. Překladač se sestává z lexikálního analyzátoru, syntaktického analyzátoru a modulu pro generování instrukcí PL/0.
+V rámci této týmové semestrální práce byl navržen jazyk C-{}-, a následně vytvořen překladač pro tento jazyk. Během překladu jsou generovány instrukce cílové platformy PL/0. Překladač se sestává z lexikálního analyzátoru, syntaktického analyzátoru a modulu pro generování instrukcí PL/0.
 
 Přeložené programy lze spustit v interpretu PL/0, kdy díky konstrukcím pro zápis a čtení z konzole lze tvořit interaktivní programy.
 
