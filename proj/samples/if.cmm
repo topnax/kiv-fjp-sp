@@ -2,13 +2,18 @@ int main() {
     int i = 10;
     int j = 14;
 
-    bool b = false;
+    bool b = i > j;
 
-    if (i > 5 || !b) {
+    if (b || i > 9) {
         consolePrintLnStr("YES");
     }
     else {
         consolePrintLnStr("NO");
+    }
+
+    if (b || j > 100) {
+    } else {
+        consolePrintLnStr("ELSE BLOCK TRIGGERED!");
     }
 
     return i;
