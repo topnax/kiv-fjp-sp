@@ -222,13 +222,27 @@ evaluate_error boolean_expression::evaluate(evaluate_context& context) {
             // compare them - result is 0 or 1 on stack
             context.gen_instruction(pcode_fct::OPR, operation_to_pcode_opr(op));
         }
-        else { // is cmpval1 true = is its value non-zero?
+        else if (op == operation::none) { // is cmpval1 true = is its value non-zero?
             ret = cmpval1->evaluate(context);
             if (ret != evaluate_error::ok) {
                 return ret;
             }
             context.gen_instruction(pcode_fct::LIT, 0);
             context.gen_instruction(pcode_fct::OPR, pcode_opr::NOTEQUAL);
+        }
+        else if (op == operation::negate) { // negate cmpval1 and evaluate
+
+            ret = cmpval1->evaluate(context);
+            if (ret != evaluate_error::ok) {
+                return ret;
+            }
+
+            // negation == comparison with zero
+            // 1 == 0 --> 0
+            // 0 == 0 --> 1
+
+            context.gen_instruction(pcode_fct::LIT, 0);
+            context.gen_instruction(pcode_fct::OPR, pcode_opr::EQUAL);
         }
     }
     // no cmpval defined, but boolexp1 is defined - perform boolean operations
@@ -283,12 +297,12 @@ evaluate_error boolean_expression::evaluate(evaluate_context& context) {
                     return ret;
                 }
 
-                // no standard p-code operation for negation, use boolean expressions to compensate for it
-                // 0 or 1 on stack; negated = (value + 1) & 1 (p-code ODD operation)
+                // negation == comparison with zero
+                // 1 == 0 --> 0
+                // 0 == 0 --> 1
 
-                context.gen_instruction(pcode_fct::LIT, 1);
-                context.gen_instruction(pcode_fct::OPR, pcode_opr::ADD);
-                context.gen_instruction(pcode_fct::OPR, pcode_opr::ODD);
+                context.gen_instruction(pcode_fct::LIT, 0);
+                context.gen_instruction(pcode_fct::OPR, pcode_opr::EQUAL);
             }
             // evaluate assertion (no operation)
             else {

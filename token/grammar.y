@@ -110,6 +110,8 @@ static void _print_symbol_match(const std::string& symbol, const std::string& st
 
 %left A_OP_PM
 %left A_OP_TD
+%right L_OP
+%left NOT
 
 %start prog
 
@@ -402,16 +404,16 @@ boolean_expression:
         _print_symbol_match("boolean_expression", "comparison, A " + std::string($2) + " B");
         $$ = new boolean_expression($1, $3, boolean_expression::str_to_bool_op($2));
     }
-    | NOT boolean_expression {
-        _print_symbol_match("boolean_expression", "negation");
+    | NOT value {
+        _print_symbol_match("boolean_expression", "negation of value");
         $$ = new boolean_expression($2, nullptr, boolean_expression::operation::negate);
     }
     | PAREN_L boolean_expression PAREN_R {
         _print_symbol_match("boolean_expression", "parenthesis enclosure");
         $$ = $2;
     }
-    | boolean_expression L_OP boolean_expression {
-        _print_symbol_match("boolean_expression", "boolean operation, A " + std::string($2) + " B");
+    | value L_OP value {
+        _print_symbol_match("boolean_expression", "boolean operation on values, A " + std::string($2) + " B");
         $$ = new boolean_expression($1, $3, boolean_expression::str_to_bool_op($2));
     }
     | TRUE {

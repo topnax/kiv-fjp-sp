@@ -11,5 +11,12 @@ int main() {
 
     consolePrintLnNum(p);
 
+    bool a = true;
+    bool b = true;
+    if (!a || b)
+        consolePrintLnStr("TRUE");
+    else
+        consolePrintLnStr("FALSE");
+
     return 5 + 5 * 5 + 5;
 }
