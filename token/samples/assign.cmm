@@ -1,0 +1,28 @@
+
+struct test {
+    int x;
+    int y;
+};
+
+int main() {
+
+    int a;
+    int b;
+    int c;
+    int d[2];
+    struct test t;
+
+    c = 5;
+
+    a = b = ((c == 5) ? 10 : 0);
+
+    consolePrintLnNum(a + b + c);
+
+    a = d[2] = t.y = b = d[1] = c = (a = 100) + 5;
+
+    consolePrintLnNum(a);
+    consolePrintLnNum(d[2]);
+    consolePrintLnNum(t.y);
+
+    return a;
+}

@@ -76,8 +76,8 @@ int base(uint8_t l) {
 
 int main(int argc, char** argv)
 {
-	if (argc != 2) {
-		std::cout << "Usage: " << argv[0] << " <path to program>" << std::endl;
+	if (argc < 2 || argc > 3) {
+		std::cout << "Usage: " << argv[0] << " <path to program> [debug]" << std::endl;
 		return 1;
 	}
 
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
 	int last_p = 0;
 	bool error = false;
 
-	const bool DebugOutput = false;
+	const bool DebugOutput = (argc > 2 && std::string(argv[2]) == "debug");
 
 	do {
 		instruction i = code[p];
@@ -226,7 +226,7 @@ int main(int argc, char** argv)
             }
 			case pcode_fct::LOD:
 				if (DebugOutput) {
-					std::cout << "=== LOD: " << static_cast<int>(i.l) << " - " << i.a << std::endl;
+					std::cout << "=== LOD: " << static_cast<int>(i.l) << " - " << i.a << " (value = " << s[base(i.l) + i.a] << ")" << std::endl;
 				}
 				t++;
 				s[t] = s[base(i.l) + i.a];
@@ -296,13 +296,17 @@ int main(int argc, char** argv)
 				}
 				if (s[t] == 0) {
 					p = i.a;
-					t = t - 1;
 				}
+				t = t - 1;
 				break;
 			default:
 				error = true;
 				std::cout << "=== Invalid opcode - " << static_cast<int>(i.f) << std::endl;
 				break;
+		}
+
+		if (DebugOutput) {
+			std::cout << "===> t == " << t << std::endl;
 		}
 
 		if (p >= code.size()) {

@@ -5,13 +5,23 @@
 
 extern int parse(FILE* input, FILE* output);
 extern program* ast_root;
+extern bool print_symbol_match;
 
 int main(int argc, char* argv[])
 {
     int parseresult = 0;
 
+    print_symbol_match = false;
+
+    std::string out_name = "out.pl0";
+
     FILE* fp;
-    if (argc == 2) {
+    if (argc >= 2) {
+
+        if (argc > 2) {
+            out_name = argv[2];
+        }
+
         // file name provided
         std::cout << "Opening file " << argv[1] << std::endl;
         fp = fopen(argv[1], "r");
@@ -21,6 +31,8 @@ int main(int argc, char* argv[])
             std::cerr << "Cannot open file " << std::endl;
             return -1;
         }
+
+        std::cout << "Compiling..." << std::endl;
 
         // parse the provided file
         parseresult = parse(fp, stdout);
@@ -35,33 +47,21 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    std::cout << "AST complete, generating code" << std::endl;
+    std::cout << "AST built successfully, generating code..." << std::endl;
 
     evaluate_context ctx;
     evaluate_error result = ast_root->evaluate(ctx);
 
-    switch (result) {
-        case evaluate_error::ok:
-            std::cout << "OK" << std::endl;
-            break;
-        case evaluate_error::undeclared_identifier:
-            std::cerr << "Undeclared identifier" << std::endl;
-            break;
-        case evaluate_error::unknown_typename:
-            std::cerr << "Unknown typename" << std::endl;
-            break;
-        case evaluate_error::invalid_state:
-            std::cerr << "Invalid state" << std::endl;
-            break;
-        case evaluate_error::unresolved_reference:
-            std::cerr << "Unresolved reference" << std::endl;
-            break;
-    }
-
-    //if (result == evaluate_error::ok)
+    if (result == evaluate_error::ok)
     {
-        std::cout << std::endl << "Generated program: " << std::endl;
-        std::cout << ctx.text_out() << std::endl;
+        std::cout << "Compilation successful!" << std::endl;
+
+        //std::cout << std::endl << "Generated program: " << std::endl;
+        //std::cout << ctx.text_out() << std::endl;
+    }
+    else
+    {
+        std::cerr << "Compilation FAILED: " << ctx.error_message << std::endl;
     }
 
     if (result == evaluate_error::ok) {
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
         auto res = ctx.binary_out(b_out);
         if (res) {
 
-            std::ofstream out("out.pl0", std::ios::out | std::ios::binary);
+            std::ofstream out(out_name, std::ios::out | std::ios::binary);
 
             for (auto& bi : b_out) {
                 out.write(reinterpret_cast<const char*>(&bi), sizeof(binary_instruction));
@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 
             out.close();
 
-            std::cout << std::endl << "Output stored to: out.pl0" << std::endl;
+            std::cout << std::endl << "Output written to: " << out_name << std::endl;
         }
     }
 

@@ -1,0 +1,28 @@
+
+int factorial_recursive(int num) {
+	if (num == 1) {
+		return 1;
+	}
+	return factorial_recursive(num - 1) * num;
+}
+
+int factorial_loop(int num) {
+	int result = num;
+	while (num > 1) {
+		num = num - 1;
+		result = result * num;
+	}
+	return result;
+}
+
+int main() {
+	consolePrintStr("Zadejte cislo na vypocteni faktorialu: ");
+	int vstup = consoleScanNum();
+
+	consolePrintStr("Faktorial rekurzi: ");
+	consolePrintLnNum(factorial_recursive(vstup));
+	consolePrintStr("Faktorial cyklem:  ");
+	consolePrintLnNum(factorial_loop(vstup));
+
+	return 0;
+}

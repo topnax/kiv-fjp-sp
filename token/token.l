@@ -13,9 +13,9 @@
 #include <io.h>
 #define isatty _isatty
 #define fileno _fileno
-#else
-#define YY_DECL extern "C" int yylex (void)
 #endif
+
+#define YY_DECL extern "C" int yylex (void)
 
 void showError(const char* token);
 %}
@@ -26,7 +26,8 @@ int_literal      ([0-9])+
 str_literal \"(\\.|[^"\\])*\"
 l_op        (\|\||\&\&)
 b_op        (\||\&|\~)
-a_op        (\+|\*|\/|\-)
+a_op_pm     (\+|\-)
+a_op_td     (\*|\/)
 comparsion  (>|<|==|>=|<=|!=)
 
 %%
@@ -59,9 +60,9 @@ false               {return FALSE;}
 {int_literal}            {yylval.int_literal = atoi(yytext); return INT_LITERAL;}
 {l_op}              {sscanf(yytext, "%s", yylval.l_op); return L_OP;}
 {b_op}              {sscanf(yytext, "%s", yylval.b_op); return B_OP;}
-{a_op}              {sscanf(yytext, "%s", yylval.a_op); return A_OP;}
+{a_op_pm}           {sscanf(yytext, "%s", yylval.a_op); return A_OP_PM;}
+{a_op_td}           {sscanf(yytext, "%s", yylval.a_op); return A_OP_TD;}
 {comparsion}        {sscanf(yytext, "%s", yylval.comparsion); return COMPARSION;}
-
 
 "{"      		    {yylval.bracket = yytext[0]; return B_L_CURLY;}
 "}"      		    {yylval.bracket = yytext[0]; return B_R_CURLY;}
@@ -79,7 +80,6 @@ false               {return FALSE;}
 
 %%
 
-
 void showError(const char* token){
-    printf("Other input: %s\n", token);
+    printf("Unexpected character sequence: %s\n", token);
 }

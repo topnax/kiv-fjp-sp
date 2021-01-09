@@ -7,4 +7,6 @@ int main() {
     int b = 10;
 
     int neco = a + b * secti(a, b);
+
+    return neco;
 }

@@ -1,15 +1,23 @@
 
 %{
 #include <cstdio>
+#include <iostream>
 #include "ast.h"
 
 extern "C" int yylex();
 int yyerror(const char *s);
 
+bool print_symbol_match = false;
 program* ast_root = NULL;
 
 extern FILE *yyin, *yyout;
 bool verbose_out = false;
+
+static void _print_symbol_match(const std::string& symbol, const std::string& str) {
+    if (print_symbol_match) {
+        std::cout << "[" << symbol << "]: " << str << std::endl;
+    }
+}
 
 #define YY_NO_UNISTD_H
 
@@ -38,6 +46,7 @@ bool verbose_out = false;
     function_call* function_call;
     std::list<value*>* expressions;
     expression* expression;
+    assign_expression* assign_expression;
     command* my_command;
     std::list<command*>* commands;
     block* block;
@@ -51,7 +60,7 @@ bool verbose_out = false;
 
 %define parse.error verbose
 
-%token STR_LITERAL INT_LITERAL OTHER SEMICOLON QUESTION COLON IDENTIFIER TYPE WHITESPACE L_OP B_OP A_OP COMPARSION
+%token STR_LITERAL INT_LITERAL OTHER SEMICOLON QUESTION COLON IDENTIFIER TYPE WHITESPACE L_OP B_OP A_OP_PM A_OP_TD COMPARSION
 %token ASSIGN NOT
 %token B_L_CURLY B_R_CURLY B_L_SQUARE B_R_SQUARE PAREN_L PAREN_R
 
@@ -70,6 +79,7 @@ bool verbose_out = false;
 %type <function_call> function_call
 %type <expressions> expressions
 %type <expression> expression
+%type <assign_expression> assign_expression
 %type <my_command> command
 %type <commands> commands
 %type <block> block
@@ -84,7 +94,8 @@ bool verbose_out = false;
 %type <identifier> IDENTIFIER
 %type <type> TYPE
 %type <l_op> L_OP
-%type <a_op> A_OP
+%type <a_op> A_OP_PM
+%type <a_op> A_OP_TD
 %type <b_op> B_OP
 %type <comparsion> COMPARSION;
 %type <b_not> NOT;
@@ -97,7 +108,8 @@ bool verbose_out = false;
 %type <parenthesis> PAREN_L;
 %type <parenthesis> PAREN_R;
 
-// TODO: operator priority
+%left A_OP_PM
+%left A_OP_TD
 
 %start prog
 
@@ -105,7 +117,8 @@ bool verbose_out = false;
 
 prog:
     global {
-        $$ = new program($1); ast_root = $$;
+        $$ = new program($1);
+        ast_root = $$;
     }
 ;
 
@@ -129,208 +142,224 @@ global:
 
 declaration:
     TYPE IDENTIFIER {
-        printf("variable declaration: type=%d identifier=%s\n", $1, $2);
+        _print_symbol_match("declaration", "variable declaration: type=" + std::to_string($1) + " identifier=" + std::string($2));
         $$ = new declaration($1, $2);
     }
     | TYPE IDENTIFIER B_L_SQUARE INT_LITERAL B_R_SQUARE {
-        printf("variable array declaration: type=%d identifier=%s size=%d\n", $1, $2, $4);
+        _print_symbol_match("declaration", "array declaration: type=" + std::to_string($1) + " identifier=" + std::string($2) + " size=" + std::to_string($4));
         $$ = new declaration($1, $2, $4);
     }
     | STRUCT IDENTIFIER IDENTIFIER {
-        printf("variable structure %s: identifier=%s\n", $2, $3);
+        _print_symbol_match("declaration", "variable structure: struct name=" + std::string($2) + " identifier=" + std::string($3));
         $$ = new declaration(TYPE_META_STRUCT, $2, $3);
     }
 ;
 
 multi_declaration:
     multi_declaration declaration SEMICOLON {
-        printf("struct non-terminal declaration\n");
+        _print_symbol_match("multi_declaration", "non-terminal declaration");
         $$ = $1;
         $1->push_back($2);
     }
     | {
-        printf("struct terminal declaration\n");
+        _print_symbol_match("multi_declaration", "terminal declaration");
         $$ = new std::list<declaration*>();
     }
 ;
 
 variable:
     declaration SEMICOLON {
-        printf("got variable declaration\n");
+        _print_symbol_match("variable", "variable declaration");
         $$ = new variable_declaration($1);
     } 
     | declaration ASSIGN value SEMICOLON {
-        printf("got variable delcaration with value assignment\n");
+        _print_symbol_match("variable", "variable declaration with initialization");
         $$ = new variable_declaration($1, false, $3);
     }
     | CONST declaration ASSIGN value SEMICOLON {
-        printf("got constant delcaration with value assignment\n");
+        _print_symbol_match("variable", "constant declaration with initialization");
         $$ = new variable_declaration($2, true, $4);
     }
 ;
 
 struct_def:
     STRUCT IDENTIFIER B_L_CURLY multi_declaration B_R_CURLY SEMICOLON {
-        printf("got structure definition\n");
+        _print_symbol_match("struct_def", "structure definition");
         $$ = new struct_definition($2, $4);
     }
 ;
 
 condition:
-    IF PAREN_L expression PAREN_R block {
-        printf("got if condition (without else)\n");
+    IF PAREN_L value PAREN_R block {
+        _print_symbol_match("condition", "if condition (without else)");
         $$ = new condition($3, $5);
     }
-    | IF PAREN_L expression PAREN_R block ELSE block {
-        printf("got if condition (with else)\n");
+    | IF PAREN_L value PAREN_R block ELSE block {
+        _print_symbol_match("condition", "if condition (with else)");
         $$ = new condition($3, $5, $7);
     }
 ;
 
 loop:
-    WHILE PAREN_L expression PAREN_R block {
-        printf("got while loop\n");
+    WHILE PAREN_L value PAREN_R block {
+        _print_symbol_match("loop", "while loop");
         $$ = new while_loop($3, $5);
     }
-    | FOR PAREN_L expression SEMICOLON expression SEMICOLON expression PAREN_R block {
-        printf("got for loop\n");
+    | FOR PAREN_L expression SEMICOLON value SEMICOLON expression PAREN_R block {
+        _print_symbol_match("loop", "for loop");
         $$ = new for_loop($3, $5, $7, $9);
     }
 ;
 
 arithmetic:
-    value A_OP value {
-        printf("operator %s\n", $2);
+    value A_OP_PM value {
+        _print_symbol_match("arithmetic", "arithmetic expression (+, -), A " + std::string($2) + " B");
+        $$ = new arithmetic($1, arithmetic::str_to_op($2), $3);
+    }
+    | value A_OP_TD value {
+        _print_symbol_match("arithmetic", "arithmetic expression (*, /), A " + std::string($2) + " B");
         $$ = new arithmetic($1, arithmetic::str_to_op($2), $3);
     }
 ;
 
 expressions:
     expressions COMMA value {
-        printf("expression list as a function call parameter (recursive)\n");
+        _print_symbol_match("expressions", "expression list as a function call parameter (multiple parameters)");
         $$ = $1;
         $1->push_back($3);
     }
     | value {
-        printf("expression list as a function call parameter (single)\n");
+        _print_symbol_match("expressions", "expression list as a function call parameter (single parameter)");
         $$ = new std::list<value*>{$1};
     }
 ;
 
 function_call:
     IDENTIFIER PAREN_L PAREN_R {
-        printf("non-parametric function call\n");
+        _print_symbol_match("function_call", "non-parametric function call");
         $$ = new function_call($1);
     }
     | IDENTIFIER PAREN_L expressions PAREN_R {
-        printf("parametric function call\n");
+        _print_symbol_match("function_call", "parametric function call");
         $$ = new function_call($1, $3);
     }
 ;
 
 value:
     INT_LITERAL {
-        printf("got int literal as value\n");
+        _print_symbol_match("value", "integer literal '" + std::to_string($1) + "'");
         $$ = new value($1);
     }
     | STR_LITERAL {
-        printf("got str literal as value\n");
+        _print_symbol_match("value", "string literal '" + std::string($1) + "'");
         $$ = new value($1);
     }
     | IDENTIFIER {
-        printf("got scalar identifier %s as value\n", $1);
+        _print_symbol_match("value", "scalar identifier '" + std::string($1) + "'");
         $$ = new value(new variable_ref($1));
     }
     | arithmetic {
-        printf("got arithmetic as value\n");
+        _print_symbol_match("value", "arithmetic expression");
         $$ = new value($1);
     }
     | function_call {
-        printf("got function call as value\n");
+        _print_symbol_match("value", "function call");
+        $$ = new value($1);
+    }
+    | boolean_expression {
+        _print_symbol_match("value", "boolean expression");
         $$ = new value($1);
     }
     | boolean_expression QUESTION value COLON value {
-        printf("got ternary operator\n");
+        _print_symbol_match("value", "ternary operator");
         $$ = new value($1, $3, $5);
     }
+    | assign_expression {
+        _print_symbol_match("value", "assign expression");
+        $$ = new value($1);
+    }
     | IDENTIFIER DOT IDENTIFIER {
-        printf("got struct %s member %s as value\n", $1, $3);
+        _print_symbol_match("value", "struct '" + std::string($1) + "' member '" + std::string($3) + "'");
         $$ = new value($1, $3);
     }
     | IDENTIFIER B_L_SQUARE value B_R_SQUARE {
-        printf("got array identifier as value\n");
+        _print_symbol_match("value", "array '" + std::string($1) + "' (indexed)");
         $$ = new value(new variable_ref($1), $3);
+    }
+    | PAREN_L value PAREN_R {
+        _print_symbol_match("value", "parenthesis enclosure");
+        $$ = $2;
+    }
+;
+
+assign_expression:
+    IDENTIFIER ASSIGN value {
+        _print_symbol_match("assign_expression", "scalar left-hand side '" + std::string($1) + "'");
+        $$ = new assign_expression($1, (value*)nullptr, $3);
+    }
+    | IDENTIFIER B_L_SQUARE value B_R_SQUARE ASSIGN value {
+        _print_symbol_match("assign_expression", "array element of left-hand side '" + std::string($1) + "'");
+        $$ = new assign_expression($1, $3, $6);
+    }
+    | IDENTIFIER DOT IDENTIFIER ASSIGN value {
+        _print_symbol_match("assign_expression", "struct '" + std::string($1) + "' member '" + std::string($3) + "' as left-hand side");
+        $$ = new assign_expression($1, $3, $5);
     }
 ;
 
 expression:
-    IDENTIFIER ASSIGN value {
-        printf("assigning value to %s\n", $1);
-        $$ = new assign_expression($1, (value*)nullptr, $3);
-    }
-    | IDENTIFIER B_L_SQUARE value B_R_SQUARE ASSIGN value {
-        printf("assigning value to array element %s\n", $1);
-        $$ = new assign_expression($1, $3, $6);
-    }
-    | IDENTIFIER DOT IDENTIFIER ASSIGN value {
-        printf("assigning to struct %s member %s\n", $1, $3);
-        $$ = new assign_expression($1, $3, $5);
-    }
-    | value {
-        printf("got value (expression)\n");
-        $$ = new expression($1);
-    }
-    | boolean_expression {
-        printf("got boolean expression\n");
+    value {
+        _print_symbol_match("expression", "value expression (discarding return value)");
         $$ = new expression($1);
     }
 ;
 
 command:
     variable {
-        printf("got var decl command\n");
+        _print_symbol_match("command", "variable declaration");
         $$ = new command($1);
     }
     | expression SEMICOLON {
-        printf("got expression decl command\n");
-        $$ = new command($1, false);
+        _print_symbol_match("command", "expression");
+        $$ = new command($1);
     }
-    | RETURN expression SEMICOLON {
-        printf("got return statement\n");
-        $$ = new command($2, true);
+    | RETURN value SEMICOLON {
+        _print_symbol_match("command", "return statement");
+        $$ = new command($2);
     }
     | loop {
-        printf("got loop command\n");
+        _print_symbol_match("command", "loop");
         $$ = new command($1);
     }
     | condition {
-        printf("got condition command\n");
+        _print_symbol_match("command", "condition");
         $$ = new command($1);
     }
 ;
 
 commands:
     commands command {
-        printf("got a non-terminal command definition\n");
+        _print_symbol_match("commands", "non-terminal command list match");
         $$ = $1;
         $1->push_back($2);
     }
     | {
+        _print_symbol_match("commands", "terminal command list match");
         $$ = new std::list<command*>();
     }
 ;
 
 block:
     B_L_CURLY B_R_CURLY {
-        printf("got an empty block\n");
+        _print_symbol_match("block", "empty block");
         $$ = new block(nullptr);
     }
     | B_L_CURLY commands B_R_CURLY {
-        printf("got a multi-line block\n");
+        _print_symbol_match("block", "multi-line block");
         $$ = new block($2);
     }
     | command {
-        printf("got a single-line block\n");
+        _print_symbol_match("block", "single-line block");
         std::list<command*>* lst = new std::list<command*>();
         lst->push_back($1);
         $$ = new block(lst);
@@ -339,11 +368,11 @@ block:
 
 parameters:
     declaration {
-        printf("got a terminal function parameter definition\n");
+        _print_symbol_match("parameters", "terminal function parameters definition");
         $$ = new std::list<declaration*>{ $1 };
     }
     | parameters COMMA declaration {
-        printf("got a non-terminal function parameter definition\n");
+        _print_symbol_match("parameters", "non-terminal function parameters definition");
         $$ = $1;
         $1->push_back($3);
     }
@@ -351,50 +380,46 @@ parameters:
 
 function:
     declaration PAREN_L PAREN_R block {
-        printf("got a function definition (no params)\n");
+        _print_symbol_match("function", "non-parametric function definition");
         $$ = new function_declaration($1, $4);
     }
     | declaration PAREN_L parameters PAREN_R block {
-        printf("got a function definition (with params)\n");
+        _print_symbol_match("function", "parametric function definition");
         $$ = new function_declaration($1, $5, $3);
     }
     | declaration PAREN_L PAREN_R SEMICOLON {
-        printf("got a function forward declaration (no params)\n");
+        _print_symbol_match("function", "non-parametric function forward declaration");
         $$ = new function_declaration($1, nullptr);
     }
     | declaration PAREN_L parameters PAREN_R SEMICOLON {
-        printf("got a function forward declaration (with params)\n");
+        _print_symbol_match("function", "parametric function forward declaration");
         $$ = new function_declaration($1, nullptr, $3);
     }
 ;
 
 boolean_expression:
-    value {
-        printf("got value (boolean expression)\n");
-        $$ = new boolean_expression($1);
-    }
-    | value COMPARSION value {
-        printf("got compare (boolean expression)\n");
+    value COMPARSION value {
+        _print_symbol_match("boolean_expression", "comparison, A " + std::string($2) + " B");
         $$ = new boolean_expression($1, $3, boolean_expression::str_to_bool_op($2));
     }
     | NOT boolean_expression {
-        printf("got negation (boolean expression)\n");
-        $$ = new boolean_expression($2, nullptr, boolean_expression::str_to_bool_op($1));
+        _print_symbol_match("boolean_expression", "negation");
+        $$ = new boolean_expression($2, nullptr, boolean_expression::operation::negate);
     }
     | PAREN_L boolean_expression PAREN_R {
-        printf("got enclosed expression (boolean expression)\n");
+        _print_symbol_match("boolean_expression", "parenthesis enclosure");
         $$ = $2;
     }
     | boolean_expression L_OP boolean_expression {
-        printf("got boolean expression (boolean expression)\n");
+        _print_symbol_match("boolean_expression", "boolean operation, A " + std::string($2) + " B");
         $$ = new boolean_expression($1, $3, boolean_expression::str_to_bool_op($2));
     }
     | TRUE {
-        printf("got true (boolean expression)\n");
+        _print_symbol_match("boolean_expression", "TRUE token");
         $$ = new boolean_expression(true);
     }
     | FALSE {
-        printf("got false (boolean expression)\n");
+        _print_symbol_match("boolean_expression", "FALSE token");
         $$ = new boolean_expression(false);
     }
 ;
@@ -403,7 +428,7 @@ boolean_expression:
 
 int yyerror(const char *s)
 {
-	printf("Error: %s\n", s);
+	std::cerr << "Error: " << s << std::endl;
 	return 0;
 }
 
