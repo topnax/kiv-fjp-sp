@@ -328,7 +328,7 @@ Každý konkrétní člen syntaktického stromu představován konkrétní struk
 \begin{itemize}
     \item \texttt{arithmetic} -- aritmetický výraz
     \item \texttt{assign\_expression} -- přiřazení do proměnné
-    \item \texttt{block} -- \begin{huge} TODO \end{huge}
+    \item \texttt{block} -- blok příkazů (tělo funkce, cyklu nebo podmínky)
     \item \texttt{boolean\_expression} -- booleanský výraz
     \item \texttt{command} -- struktura oblaující nějaký příkaz (např. deklaraci proměnné, výraz, definici podmínky či cyklu)
     \item \texttt{condition} -- obaluje výraz v podmínce a příkazy, které se mají provést pokud vyhodnocení podmínky bude úspěšné
@@ -337,7 +337,7 @@ Každý konkrétní člen syntaktického stromu představován konkrétní struk
     \item \texttt{for\_loop} -- obalující komponenty iteračního cyklu
     \item \texttt{function\_call} -- volání funkce
     \item \texttt{function\_declaration} -- deklarace funkce
-    \item \texttt{global\_statement} -- \begin{huge} TODO \end{huge}
+    \item \texttt{global\_statement} -- příkaz modifikující globální rozsah (definice struktury, deklarace funkce nebo globální proměnné)
     \item \texttt{loop} -- obaluje příkazy volané uvnitř jedné iterace cyklu
     \item \texttt{program} -- kořen abstraktního syntaktického stromu, který představuje celý program
     \item \texttt{struct\_definition} -- definice struktury (obaluje jednotlivé členy této struktury)
@@ -434,7 +434,7 @@ V rámci této semestrální práce byla implementována následující voliteln
 \begin{itemize}
     \item cykly \texttt{for} a \texttt{while}
     \item datový typ \texttt{boolean} a logické operace s ním
-    \item datový typ \texttt{string} (s operátory pro spojování řetězců)
+    \item datový typ \texttt{string} 
     \item násobné přiřazení (\texttt{a = b = c = d = 3;})
     \item podmíněné přiřazení / ternární operátor (\texttt{min = (a < b) ? a : b;})
     \item příkazy pro vstup a výstup (\texttt{read}, \texttt{write} - potřebuje vhodné instrukce které bude možné využít)
