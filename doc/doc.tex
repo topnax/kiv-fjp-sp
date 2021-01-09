@@ -149,12 +149,83 @@ Podobně, jako například jazyk Python, navržený jazyk C-{}- nepodporuje oper
 % TODO
 \begin{grammar}
 
-<statement> ::= <ident> `=' <expr> 
-\alt `for' <ident> `=' <expr> `to' <expr> `do' <statement> 
-\alt `{' <stat-list> `}' 
-\alt <empty> 
+<prog> ::= <global>
 
-<stat-list> ::= <statement> `;' <stat-list> | <statement> 
+<global> ::= <global> <function>
+\alt <global> <variable>
+\alt <global> <struct\_def>
+\alt <empty>
+
+<declaration> ::= <type> <identifier>
+\alt  <type> <identifier> `[' <int\_literal> `]'
+\alt  `struct' <identifier> <identifier>
+
+
+<multi\_declaration> ::= <multi\_declaration> <declaration> `;'
+\alt <empty>
+
+<variable> ::= <declaration> `;'
+\alt <declaration> `=' <value> `;'
+\alt `const' <declaration> `=' <value> `;'
+
+<struct\_def> := `struct' <identifier> `{' <multi\_declaration> `}' `;'
+
+<condition> ::= `if' `(' <value> `)' <block>
+\alt `if' `(' <value> `)' <block> `else' <block>
+
+<loop> ::= `while' `(' <value> `)' <block>
+\alt `for' `(' <expression> `;' <value> `;' <expression> `)' <block>
+
+<arithmetic> ::= <value> <a\_op\_pm> <value>
+\alt <value> <a\_op\_td> <value>
+
+<expressions> ::= <expressions> `,' <value>
+\alt <value>
+
+<function\_call> ::= <identifier> `(' `)'
+\alt <identifier> `(' <expressions> `)'
+
+<value> ::= <int\_literal>
+\alt <str\_literal>
+\alt <identifier>
+\alt <arithmetic>
+\alt <function\_call>
+\alt <boolean\_expression>
+\alt <boolean\_expression> `?' <value>  `:' <value>
+\alt <assign\_expression>
+\alt <identifier> `.' <identifier>
+\alt <identifier> `[' <value> `]'
+\alt `(' <value> `)'
+
+<assign\_expression> ::= <identifier> `=' <value>
+\alt <identifier> `[' <value> `]' `=' <value>
+\alt <identifier> `.' <identifier> `=' <value>
+
+<expression> ::= <value>
+
+<command> ::= <variable>
+\alt <expression> `;'
+\alt `return' <value> `;'
+\alt <loop>
+\alt <condition>
+
+<commands> ::= <commands> <command>
+\alt <empty>
+
+<block> ::= `{' `}'
+\alt `{' <commands> `}' 
+\alt <command>
+
+<parameters> ::= <declaration>
+\alt <declaration>
+\alt <parameters> `,' <declaration>
+
+<boolean\_expression> ::= <value> <comparsion> <value>
+\alt `!' <boolean\_expression>
+\alt `(' <boolean\_expression> `)'
+\alt <boolean\_expression> <l\_op> <boolean\_expression>
+\alt `true'
+\alt `false'
 
 \end{grammar}
 
