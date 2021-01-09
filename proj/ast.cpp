@@ -197,6 +197,13 @@ evaluate_error arithmetic::evaluate(evaluate_context& context) {
     // perform operation on two top values from stack
     context.gen_instruction(pcode_fct::OPR, operation_to_pcode_opr(op));
 
+    auto type1 = lhs_val->get_type_info(context);
+    auto type2 = rhs_val->get_type_info(context);
+    if (type1.major_type != TYPE_INT || type2.major_type != TYPE_INT) {
+        context.error_message = "Cannot perform arithmetic operation on non-integer values";
+        return evaluate_error::cannot_assign_type;
+    }
+
     return evaluate_error::ok;
 }
 
@@ -220,6 +227,13 @@ evaluate_error boolean_expression::evaluate(evaluate_context& context) {
             }
             // compare them - result is 0 or 1 on stack
             context.gen_instruction(pcode_fct::OPR, operation_to_pcode_opr(op));
+
+            auto type1 = cmpval1->get_type_info(context);
+            auto type2 = cmpval2->get_type_info(context);
+            if (type1 != type2) {
+                context.error_message = "Cannot compare values with different types";
+                return evaluate_error::cannot_assign_type;
+            }
         }
         else if (op == operation::none) { // is cmpval1 true = is its value non-zero?
             ret = cmpval1->evaluate(context);

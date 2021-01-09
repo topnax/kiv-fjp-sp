@@ -13,10 +13,14 @@ int main() {
 
     bool a = true;
     bool b = true;
-    if (!a || b)
+    if (!a || b) {
         consolePrintLnStr("TRUE");
-    else
+    } else {
         consolePrintLnStr("FALSE");
+    }
 
-    return 5 + 5 * 5 + 5;
+    int pp = 5;
+    string gg = "abcbcbcbcbc";
+
+    return pp + 5;
 }
