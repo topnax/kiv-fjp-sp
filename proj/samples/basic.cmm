@@ -1,26 +1,21 @@
 
 int main() {
+    consolePrintLnStr("Hello world from C minus minus");
 
-    consolePrintLnStr("Hello");
-    consolePrintStr("Cislo: ");
-    consolePrintLnNum(25);
+    const int i = 25;
+    consolePrintStr("Printing number 25: ");
+    consolePrintLnNum(i);
 
-    consolePrintStr("Zadejte cislo: ");
-
-    int p = consoleScanNum();
-
-    consolePrintLnNum(p);
-
-    bool a = true;
     bool b = true;
-    if (!a || b) {
-        consolePrintLnStr("TRUE");
+    if (!(true) || !false ||b) {
+        consolePrintLnStr("TRUE!!!");
     } else {
-        consolePrintLnStr("FALSE");
+        consolePrintLnStr("FALSE!!!");
     }
 
-    int pp = 5;
-    string gg = "abcbcbcbcbc";
+    int num = 10;
 
-    return pp + 5;
+    string lit = "a string literal";
+
+    return num + 5;
 }
