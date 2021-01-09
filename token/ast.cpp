@@ -135,7 +135,6 @@ evaluate_error assign_expression::evaluate(evaluate_context& context) {
         }
 
         // specify the base
-        // TODO other than 0 base - resolver should replace "level" in there instead of following LIT (address) instruction
         context.gen_instruction(pcode_fct::LIT, 0);
 
         // evaluate the array index
@@ -348,7 +347,6 @@ evaluate_error value::evaluate(evaluate_context& context) {
         // array element - load base, move by offset and load using extended p-code instruction set
         case value_type::array_element:
             // specify the base
-            // TODO other than 0 base - resolver should replace "level" in there instead of following LIT (address) instruction
             context.gen_instruction(pcode_fct::LIT, 0);
 
             // evaluate index value
@@ -387,7 +385,6 @@ evaluate_error value::evaluate(evaluate_context& context) {
             // load the struct definition
             auto struct_def = context.struct_defs[struct_name];
 
-            // TODO: support nested struct members - determine_size is recursive
             // compute the offset by summing sizes of struct members till we find the required member
             int size = 0;
             bool found = false;
@@ -396,7 +393,6 @@ evaluate_error value::evaluate(evaluate_context& context) {
                     found = true;
                     break;
                 }
-                // TODO: call is_struct_defined if it's a struct inside a struct
                 size += member->determine_size(context);
             }
 

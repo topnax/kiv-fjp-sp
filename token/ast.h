@@ -1102,7 +1102,6 @@ struct variable_declaration : public global_statement {
                 context.gen_instruction(pcode_fct::STO, decl->identifier);
             }
             else {
-                // TODO struct ?
                 context.global_initializers[decl->identifier] = initialized_by;
             }
         }
