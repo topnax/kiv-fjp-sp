@@ -118,7 +118,7 @@
     
 \section{Zadání}
 
-    Cílem práce je vytvořit překladač zvoleného jazyka, kdy je možné se inspirovat jazykem PL/0, vybrat si podmožninu nnějakého existujícího jazyka nebo si navrhnout jazyk zcela vlastní. Cílová architektura je volitelná, avšak nesmí být použit vlastní interpret.
+    Cílem práce je vytvořit překladač zvoleného jazyka, kdy je možné se inspirovat jazykem PL/0, vybrat si podmožninu nnějakého existujícího jazyka nebo si navrhnout jazyk zcela vlastní. Cílová architektura je volitelná, avšak nesmí být použit zcela vlastní interpret.
 
 
 \section{Návrh vlastního jazyka}
@@ -462,6 +462,23 @@ Práce na semestrální práci byla rozdělena následovně:
     \item \textbf{Stanislav Král} (\textbf{+49h}) -- úvodní založení CMake projektu a integrace nástrojů \texttt{bison} a \texttt{lex} (7h), lexikální analýza a úvod syntaktické analýzy (základní přepis gramatiky) (8h), zápis a čtení z pole (5h), zápis a čtení do struktur (8h), rozšíření interpretu PL/0 o instrukce \texttt{STA} a \texttt{LDA} (2h), psaní dokumentace (+12h)
 \end{itemize}
 
-% TODO
 
+\section{Uživatelská příručka}
+Sestavení překladače vyžaduje nainstalované nástroje \texttt{bison} a \texttt{lex}.
+
+\newline
+\noindent Postup při sestavení kompilátoru:
+\begin{enumerate}
+    \item spuštění příkazu \texttt{cmake .} v kořenovém adresáři projetku
+    \item spuštění příkazu \texttt{make} v kořenovém adresáři projetku
+    \item v kořenovém adresáři vznikl spustitelné soubory \texttt{CMM} a \texttt{pmach}
+    \item \LARGE todo
+\end{enumerate}
+
+Spustitelný soubor představující překladač jazyka C-{}- do PL/0 očekává jako první argument cestu k programu k přeložení.
+
+\newline
+Přeložení souboru (výstup překladu se objeví v souboru \texttt{out.pl0}) se provádí pomocí spuštění příkazu \texttt{./CMM samples/basic.cmm}. Spuštění přeloženého C-{}- programu pomocí PL/0 interpretu: \texttt{./pmach out.plo}
+
+    
 \end{document}    
