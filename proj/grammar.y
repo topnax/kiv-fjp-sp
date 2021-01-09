@@ -108,9 +108,10 @@ static void _print_symbol_match(const std::string& symbol, const std::string& st
 %type <parenthesis> PAREN_L;
 %type <parenthesis> PAREN_R;
 
+%left L_OP
+%left COMPARSION
 %left A_OP_PM
 %left A_OP_TD
-%right L_OP
 %left NOT
 
 %start prog
