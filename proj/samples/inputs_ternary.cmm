@@ -7,9 +7,9 @@ int main() {
     consolePrintStr("Zadejte druhe cislo: ");
     int b = consoleScanNum();
 
-    string jeneni = (a > b) ? "prvni > druhe" : "prvni <= druhe";
+    string res = (a > b) ? "prvni > druhe" : "prvni <= druhe";
 
-    consolePrintLnStr(jeneni);
+    consolePrintLnStr(res);
 
     return 0;
 }

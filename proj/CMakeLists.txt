@@ -35,7 +35,7 @@ add_executable(CMM
     ${FLEX_cmmflex_OUTPUTS} ${BISON_cmmbison_OUTPUTS}
         ast.cpp)
 
-add_executable(pmachine ${pmachine_src})
+add_executable(pmach ${pmachine_src})
 
 if(NOT WIN32)
     target_link_libraries(CMM fl)
