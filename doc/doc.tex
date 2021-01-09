@@ -127,22 +127,19 @@ V rámci této semestrální práce byl navržen jednoduchý jazyk C-{}- (\texti
 
 \begin{lstlisting}[caption={Ukázka programu v jazyce C-{}-}, captionpos=b]
 int main() {
-    i int;
-    j int = 0;
+    int i = 0;
+    int j = 0;
 
     for (i = 0; i < 10; i = i + 1) {
         j = j + i;
     }
 
+    consolePrintLnNum(j);
+
     return 0;
 }
 \end{lstlisting}
 
-
-\subsection{Specifikace typu a názvu proměnné}
-Po vzoru moderních jazyků typu Kotlin, Go nebo např. Rust, navržený jazyk používá opačné pořadí slov při deklaraci názvu a typu proměnné. 
-
-Hlavní myšlenkou tohoto způsobu deklarace proměnné je snaha, aby programátoři kladli větší důraz na názvy používaných proměnných -- před specifikací typu je třeba se zamyslet nad jejím názvem. 
 
 \subsection{Absence operátorů \texttt{++} a \texttt{-{}-}}
 
