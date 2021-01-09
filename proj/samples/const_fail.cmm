@@ -1,0 +1,8 @@
+int main() {
+    const int a = 10;
+
+    a = 20;
+
+    consolePrintLnNum(a);
+    return a;
+}
