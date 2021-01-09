@@ -431,9 +431,6 @@ else {
 Před vyhodnocováním abstraktního syntaktického stromu se implicitně definují funkce \texttt{consolePrintNum}, \texttt{consolePrintLnNum}, \texttt{consolePrintStr}, \texttt{consolePrintLnStr} a \texttt{consoleScanNum}. Při jejich volání, se generují instrukce \texttt{CAL} s příslušnou adresou z báze \texttt{BuiltinBase}.
 
 
-
-
-
 \subsection{Implementovaná rozšíření ze zadání}
 V rámci této semestrální práce byla implementována následující volitelná rozšíření:
 
@@ -453,6 +450,17 @@ V rámci této semestrální práce byla implementována následující voliteln
 
 
 \section{Závěr}	
+V rámci této týmové semestrální práce byl navržen jazyk C-{}-, a následně vytvořen překladač pro tento jazyk. Během překladu jsou generovány instrukce cílové platformy PL/O. Překladač se sestává z lexikálního analyzátoru, syntaktického analyzátoru a modulu pro generování instrukcí PL/0.
+
+Přeložené programy lze spustit v interpretu PL/0, kdy díky konstrukcím pro zápis a čtení z konzole lze tvořit interaktivní programy.
+
+
+\subsection{Rozdělení práce a časová náročnost}
+Práce na semestrální práci byla rozdělena následovně:
+\begin{itemize}
+    \item \textbf{Jindřiška Reismüllerová} -- dokončení přepsání gramatiky do \texttt{./grammar.y}, implementace abstratkního syntaktického stromu, většina generování PL/0 a implementace rozšíření
+    \item \textbf{Stanislav Král} (\textbf{+49h}) -- úvodní založení CMake projektu a integrace nástrojů \texttt{bison} a \texttt{lex} (7h), lexikální analýza a úvod syntaktické analýzy (základní přepis gramatiky) (8h), zápis a čtení z pole (5h), zápis a čtení do struktur (8h), rozšíření interpretu PL/0 o instrukce \texttt{STA} a \texttt{LDA} (2h), psaní dokumentace (+12h)
+\end{itemize}
 
 % TODO
 
