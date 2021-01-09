@@ -538,21 +538,35 @@ Práce na semestrální práci byla rozdělena následovně:
 
 
 \section{Uživatelská příručka}
-Sestavení překladače vyžaduje nainstalované nástroje \texttt{bison} a \texttt{lex}.
+\subsection{Sestavení překladače}
+Sestavení překladače vyžaduje dostpuný kompilátor C/C++ a nainstalované nástroje \texttt{bison} a \texttt{lex}.
 
 \newline
 \noindent Postup při sestavení kompilátoru:
 \begin{enumerate}
-    \item spuštění příkazu \texttt{cmake .} v kořenovém adresáři projetku
-    \item spuštění příkazu \texttt{make} v kořenovém adresáři projetku
-    \item v kořenovém adresáři vznikl spustitelné soubory \texttt{CMM} a \texttt{pmach}
-    \item \LARGE todo
-\end{enumerate}
+    \item Spuštění příkazu \texttt{cmake .} v kořenovém adresáři projektu.
+    \item Spuštění příkazu \texttt{make} v kořenovém adresáři projektu.
+    \item V kořenovém adresáři vznikly spustitelné soubory \texttt{CMM} (překladač) a \texttt{pmach} (interpret generovaných PL/0 instrukcí)
+\end{enumerate}  
+
+\subsection{Překlad C-{}- programů}
 
 Spustitelný soubor představující překladač jazyka C-{}- do PL/0 očekává jako první argument cestu k programu k přeložení.
 
-\newline
-Přeložení souboru (výstup překladu se objeví v souboru \texttt{out.pl0}) se provádí pomocí spuštění příkazu \texttt{./CMM samples/basic.cmm}. Spuštění přeloženého C-{}- programu pomocí PL/0 interpretu: \texttt{./pmach out.plo}
+Přeložení souboru (výstup překladu se objeví v souboru \texttt{out.pl0}) se provádí pomocí spuštění příkazu \texttt{./CMM samples/basic.cmm}. 
 
+Pokud překlad proběhl úspěšně, tak v souboru \texttt{out.pl0} se nachází binární podoba přeloženého programu. Výstup překladu se objeví v souboru \texttt{out.pl0}. 
+
+\subsection{Spuštění přeložených programů}
+Spuštění přeloženého C-{}- programu v binární podobě v souboru \texttt{out.pl0} pomocí interpretu se provádí příkazem \texttt{./pmach out.pl0}. 
+
+
+\begin{lstlisting}[caption={Spuštění přeloženého C-{}- programu}, captionpos=b, style=flex]
+$ ./pmach out.pl0 
+=== P-machine start ===
+=== P-machine stop ===
+=== main() returned 0
+$
+\end{lstlisting}
     
 \end{document}    
