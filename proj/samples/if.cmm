@@ -2,12 +2,13 @@ int main() {
     int i = 10;
     int j = 14;
 
+    bool b = false;
 
-    if (i > 5 && j == 14) {
-        i = 5;
+    if (i > 5 || !b) {
+        consolePrintLnStr("YES");
     }
     else {
-        i = i + 1;
+        consolePrintLnStr("NO");
     }
 
     return i;

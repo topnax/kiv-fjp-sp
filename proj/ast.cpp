@@ -225,8 +225,23 @@ evaluate_error boolean_expression::evaluate(evaluate_context& context) {
             if (ret != evaluate_error::ok) {
                 return ret;
             }
+
+            // boolean AND - sum of last 2 values must be 2 (both are 1)
+            if (op == operation::b_and) {
+                context.gen_instruction(pcode_fct::OPR, pcode_opr::ADD);
+                context.gen_instruction(pcode_fct::LIT, 2);
+                context.gen_instruction(pcode_fct::OPR, pcode_opr::EQUAL);
+            }
+            // boolean OR - sum of last 2 values must be non-0 (at least one is 1)
+            else if (op == operation::b_or) {
+                context.gen_instruction(pcode_fct::OPR, pcode_opr::ADD);
+                context.gen_instruction(pcode_fct::LIT, 0);
+                context.gen_instruction(pcode_fct::OPR, pcode_opr::NOTEQUAL);
+            }
             // compare them - result is 0 or 1 on stack
-            context.gen_instruction(pcode_fct::OPR, operation_to_pcode_opr(op));
+            else {
+                context.gen_instruction(pcode_fct::OPR, operation_to_pcode_opr(op));
+            }
 
             auto type1 = cmpval1->get_type_info(context);
             auto type2 = cmpval2->get_type_info(context);
