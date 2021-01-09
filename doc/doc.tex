@@ -188,7 +188,7 @@ Seznam tokenů vyhledávaných během lexikální analýzy při překladu zdrojo
 \begin{itemize}
     \item \textbf{klíčová slova} -- \texttt{STRUCT}, \texttt{WHILE}, \texttt{FOR}, \texttt{IF}, \texttt{ELSE}, \texttt{CONST}, \texttt{RETURN}, \texttt{TRUE}, \texttt{FALSE}
 
-    \item \textbf{aritmetické a logické operátory} -- \texttt{L\_OP}, \texttt{B\_OP}, \texttt{A\_OP}, \texttt{COMPARSION}, \texttt{NOT}
+    \item \textbf{aritmetické a logické operátory} -- \texttt{L\_OP}, \texttt{B\_OP}, \texttt{A\_OP\_PM}, \texttt{A\_OP\_TD}, \texttt{COMPARSION}, \texttt{NOT}
     \item \textbf{závorky} -- \texttt{B\_L\_CURLY}, \texttt{B\_R\_CURLY}, \texttt{B\_L\_SQUARE}, \texttt{B\_R\_SQUARE}, \texttt{PAREN\_L}, \texttt{PAREN\_R}
     \item \textbf{ostatní} -- \texttt{TYPE}, \texttt{IDENTIFIER}, \texttt{STR\_LITERAL}, \texttt{INT\_LITERAL}, \texttt{SEMICOLON}, \texttt{COMMA}, \texttt{DOT}, \texttt{ASSIGN}, \texttt{OTHER}
 
@@ -204,8 +204,8 @@ int_literal     ([0-9])+
 str_literal     \"(\\.|[^"\\])*\"
 l_op            (\|\||\&\&)
 b_op            (\||\&|\~)
-a_op            (\+|\*|\/|\-)
-comparsion      (>|<|==|>=|<=|!=)
+a_op_pm     (\+|\-)
+a_op_td     (\*|\/)comparsion      (>|<|==|>=|<=|!=)
 \end{lstlisting}
 
 \subsection{Syntaktická analýza}
