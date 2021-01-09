@@ -197,6 +197,13 @@ evaluate_error arithmetic::evaluate(evaluate_context& context) {
     // perform operation on two top values from stack
     context.gen_instruction(pcode_fct::OPR, operation_to_pcode_opr(op));
 
+    auto type1 = lhs_val->get_type_info(context);
+    auto type2 = rhs_val->get_type_info(context);
+    if (type1.major_type != TYPE_INT || type2.major_type != TYPE_INT) {
+        context.error_message = "Cannot perform arithmetic operation on non-integer values";
+        return evaluate_error::cannot_assign_type;
+    }
+
     return evaluate_error::ok;
 }
 
@@ -220,14 +227,35 @@ evaluate_error boolean_expression::evaluate(evaluate_context& context) {
             }
             // compare them - result is 0 or 1 on stack
             context.gen_instruction(pcode_fct::OPR, operation_to_pcode_opr(op));
+
+            auto type1 = cmpval1->get_type_info(context);
+            auto type2 = cmpval2->get_type_info(context);
+            if (type1 != type2) {
+                context.error_message = "Cannot compare values with different types";
+                return evaluate_error::cannot_assign_type;
+            }
         }
-        else { // is cmpval1 true = is its value non-zero?
+        else if (op == operation::none) { // is cmpval1 true = is its value non-zero?
             ret = cmpval1->evaluate(context);
             if (ret != evaluate_error::ok) {
                 return ret;
             }
             context.gen_instruction(pcode_fct::LIT, 0);
             context.gen_instruction(pcode_fct::OPR, pcode_opr::NOTEQUAL);
+        }
+        else if (op == operation::negate) { // negate cmpval1 and evaluate
+
+            ret = cmpval1->evaluate(context);
+            if (ret != evaluate_error::ok) {
+                return ret;
+            }
+
+            // negation == comparison with zero
+            // 1 == 0 --> 0
+            // 0 == 0 --> 1
+
+            context.gen_instruction(pcode_fct::LIT, 0);
+            context.gen_instruction(pcode_fct::OPR, pcode_opr::EQUAL);
         }
     }
     // no cmpval defined, but boolexp1 is defined - perform boolean operations
@@ -282,12 +310,12 @@ evaluate_error boolean_expression::evaluate(evaluate_context& context) {
                     return ret;
                 }
 
-                // no standard p-code operation for negation, use boolean expressions to compensate for it
-                // 0 or 1 on stack; negated = (value + 1) & 1 (p-code ODD operation)
+                // negation == comparison with zero
+                // 1 == 0 --> 0
+                // 0 == 0 --> 1
 
-                context.gen_instruction(pcode_fct::LIT, 1);
-                context.gen_instruction(pcode_fct::OPR, pcode_opr::ADD);
-                context.gen_instruction(pcode_fct::OPR, pcode_opr::ODD);
+                context.gen_instruction(pcode_fct::LIT, 0);
+                context.gen_instruction(pcode_fct::OPR, pcode_opr::EQUAL);
             }
             // evaluate assertion (no operation)
             else {

@@ -54,10 +54,11 @@ int main(int argc, char* argv[])
 
     if (result == evaluate_error::ok)
     {
-        std::cout << "Compilation successful!" << std::endl;
-
-        //std::cout << std::endl << "Generated program: " << std::endl;
-        //std::cout << ctx.text_out() << std::endl;
+        auto instr_out_name = out_name + ".instr";
+        std::cout << "Compilation successful! Instructions written to: " << instr_out_name << std::endl;
+        std::ofstream out(instr_out_name, std::ios::out);
+        out << ctx.text_out();
+        out.close();
     }
     else
     {
@@ -78,7 +79,7 @@ int main(int argc, char* argv[])
 
             out.close();
 
-            std::cout << std::endl << "Output written to: " << out_name << std::endl;
+            std::cout << std::endl << "Binary (executable) output written to: " << out_name << std::endl;
         }
     }
 
